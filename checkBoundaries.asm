@@ -1,13 +1,13 @@
 checkCoordinates macro x, y
   cmp x,0
-  jns imageAtBorder
-  cmp 80,x
-  jns imageAtBorder
+  jl imageAtBorder; if x is negative
+  cmp x,80
+  jg imageAtBorder; if x is bigger 
   
   cmp y,0
-  jns imageAtBorder
-  cmp 25,y
-  jns imageAtBorder
+  jl imageAtBorder; if y is negative
+  cmp y,25
+  jg imageAtBorder; if y is bigger than 25
 
   jmp boundaryChecked
   imageAtBorder: call changeDirection
@@ -21,11 +21,11 @@ changeDirection proc
   ;-x y| x y;
   ;-x-y| x -y;
 
-  cmp deltax,0
-  jns caseB
+  cmp deltax,0 
+  jl caseB; if is negative
    
   cmp deltay,0
-  jns caseB
+  jl caseB; if is negative
   
   jmp caseA
 
