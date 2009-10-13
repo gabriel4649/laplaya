@@ -1,47 +1,47 @@
 checkBoundaries proc
-  push bx; bx will be used as an index
+  push ax; ax will be used as an index
   push cx
-  mov bx,0
-  mov cx,100; 100 es el ancho x de la pantalla
+  mov ax,0
+  mov cx,26; 26 es el ancho x de la pantalla
   checkUpperCorner:
-    getCoordinates bx,0
-    cmp es:[coordinate],0; Check if it has video data
+    getCoordinates 0,ax
+    cmp es:[bx],0; Check if it has video data
     jnz imageAtBorder
-    inc bx
+    inc ax
     loop checkUpperCorner
  
-  mov bx,0
-  mov cx,150; 150 es el largo y de la pantalla
+  mov ax,0
+  mov cx,81; 81 es el largo y de la pantalla
 
   checkLeftCorner:
-    getCoordinates 0,bx
-    cmp es:[coordinate],0; Check if it has video data
+    getCoordinates ax,0
+    cmp es:[bx],0; Check if it has video data
     jnz imageAtBorder
-    inc bx
+    inc ax
     loop checkLeftCorner
   
-  mov bx,0
-  mov cx,100
+  mov ax,0
+  mov cx,26
 
   checkLowerCorner:
-    getCoordinates bx,150
-    cmp es:[coordinate],0; Check if it has video data
+    getCoordinates 81,ax
+    cmp es:[bx],0; Check if it has video data
     jnz imageAtBorder
-    inc bx
+    inc ax
     loop checkLowerCorner
 
-  mov bx,0
-  mov cx,150; 
+  mov ax,0
+  mov cx,81; 
 
   checkRightCorner:
-    getCoordinates 100,bx
-    cmp es:[coordinate],0; Check if it has video data
+    getCoordinates ax,26
+    cmp es:[bx],0; Check if it has video data
     jnz imageAtBorder
-    inc bx
+    inc ax
     loop checkRightCorner
   
   pop cx
-  pop bx
+  pop ax
   jmp boundaryChecked
   imageAtBorder: call changeDirection
   boundaryChecked: ret
