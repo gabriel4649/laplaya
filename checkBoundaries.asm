@@ -1,50 +1,45 @@
-checkBoundaries proc
-  push bx; bx will be used as an index
-  push cx
-  mov bx,0
-  mov cx,100; 100 es el ancho x de la pantalla
-  checkUpperCorner:
-    getCoordinates bx,0
-    cmp es:[coordinate],0; Check if it has video data
-    jnz imageAtBorder
-    inc bx
-    loop checkUpperCorner
- 
-  mov bx,0
-  mov cx,150; 150 es el largo y de la pantalla
-
-  checkLeftCorner:
-    getCoordinates 0,bx
-    cmp es:[coordinate],0; Check if it has video data
-    jnz imageAtBorder
-    inc bx
-    loop checkLeftCorner
+checkCoordinates macro x, y
+  cmp x,0
+  jns imageAtBorder
+  cmp 80,x
+  jns imageAtBorder
   
-  mov bx,0
-  mov cx,100
+  cmp y,0
+  jns imageAtBorder
+  cmp 25,y
+  jns imageAtBorder
 
-  checkLowerCorner:
-    getCoordinates bx,150
-    cmp es:[coordinate],0; Check if it has video data
-    jnz imageAtBorder
-    inc bx
-    loop checkLowerCorner
-
-  mov bx,0
-  mov cx,150; 
-
-  checkRightCorner:
-    getCoordinates 100,bx
-    cmp es:[coordinate],0; Check if it has video data
-    jnz imageAtBorder
-    inc bx
-    loop checkRightCorner
-  
-  pop cx
-  pop bx
   jmp boundaryChecked
   imageAtBorder: call changeDirection
   boundaryChecked: ret
-checkBoundaries endp
+endm
+
+changeDirection proc
+  ;How direction will be changed
+  ;x y | x -y
+  ;x -y| -x -y;
+  ;-x y| x y;
+  ;-x-y| x -y;
+
+  cmp deltax,0
+  jns caseB
+   
+  cmp deltay,0
+  jns caseB
+  
+  jmp caseA
+
+  caseA:
+    neg deltay
+    mov deltay,ax
+    jmp changedDirection
+
+  caseB:
+    neg deltax
+    mov deltax,ax
+    jmp changedDirection
+
+  changedDirection: ret
+changeDirection endp
 
   
