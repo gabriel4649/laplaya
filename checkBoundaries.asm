@@ -1,53 +1,88 @@
 ;Check if the coordinates are withing the screen boundaries
 checkCoordinates macro x, y
+  ;   __4__
+  ;  |     |
+  ;1 |_____| 3
+  ;     2
   local imageAtBorder
   local boundaryChecked
+
+  border; variable
+  
   cmp x,0
+  mov border,1
   jl imageAtBorder; if x is negative
+
+
   cmp x,80
+  mov border,3
   jg imageAtBorder; if x is bigger 
   
   cmp y,0
+  mov border,4
   jl imageAtBorder; if y is negative
+
   cmp y,25
+  mov border,2
   jg imageAtBorder; if y is bigger than 25
 
   jmp boundaryChecked
-  imageAtBorder: call changeDirection
+  imageAtBorder: call changeDirection border
   boundaryChecked: ret
 endm
 
 ;Changes a moving object's direction
-changeDirection proc
-  push ax
+changeDirection macro case
   ;How direction will be changed
   ;incoming | outgoing
-  ;x y | x -y
-  ;x -y| -x -y;
-  ;-x y| x y;
-  ;-x-y| x -y;
+  ;          case
+  ;        2      3
+  ;x y | x -y o -x y
+  ;        3      4
+  ;x -y| -x -y o x y
+  ;        1      2 
+  ;-x y| x y o -x -y
+  ;        1      4 
+  ;-x-y| x -y o -x y
 
   push ax  
 
   cmp deltax,0 
-  jl caseB; if is negative
+  jl deltaXNegative; if is negative
    
   cmp deltay,0
-  jl caseB; if is negative
+  jl deltaYNegative; if is negative
+
+  jmp bothPositive
   
-  jmp caseA
+  deltaYNegative: ; x -y
+    cmp case,3
+    je caseA; case 3
+    jmp caseB; case 4
 
-  caseA:
-    neg deltay
-    moveD deltay, ypos
-    moveD deltay, ypos
-    jmp changedDirection
+  deltaXNegative:
+    cmp deltay,0
+    jl bothNegative; if is negative
+    cmp case,1; -x y
+    je caseA; case 1
+    jmp caseB; case 2
 
-  caseB:
-    neg deltax
-    moveD deltax, xpos
-    moveD deltax, xpos
-    jmp changedDirection
+   bothNegative: ; -x -y
+    cmp case,1
+    je caseA; case 1
+    jmp caseB; case 4
+
+   bothPositive: ; x y
+    cmp case,2
+    je caseB; case 2
+    jmp caseA; case 3
+
+   
+  caseA: neg deltax
+         jmp changedDirection
+  caseB: neg deltay 
+         jmp changedDirection
+
 
   changedDirection: pop ax 
                     ret
