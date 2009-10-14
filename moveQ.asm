@@ -3,13 +3,19 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 .stack 100h
 .data
 	marca db '>>>>'
-	deltax db 5
+	deltax db 1
 	deltay db 1
 	xpos db 1
 	ypos db 1
 	delay dw 03ffh
+	rebotes db 2
+	dummy db ?
+	borrar db 0
+	erasePixel db 4000 dup(0)
+
 	
 .code
+	
 ;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx
 coordenadas macro fila, columna
 	push ax
@@ -44,14 +50,19 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 500
+	mov cx, 250
+	mov al, rebotes
+	mov dummy, al
 	
 	again:
-	call moveOb
+	call setErasePixels
+	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
 	
 	coordenadas ypos, xpos
 	
 	call clear
+	call eraser
+	
 	mov al, 'Q'
 	mov ah, 0fh
 	mov es:[bx], ax
@@ -88,7 +99,11 @@ clear proc
 	mov cx, 2000
 	
 	clearall:
-	mov es:[bx], 0
+	cmp erasePixel[bx], 1
+	jz noClear ;If el pixel no es cero, sal de la funcion
+	mov ax, 0
+	mov es:[bx], ax 
+	noClear:
 	inc bx
 	inc bx
 	loop clearall
@@ -133,12 +148,20 @@ checkCoordinates proc
     neg deltax
     moveD deltax, xpos
     moveD deltax, xpos
+    sub dummy, 1
+    jz setErase
     jmp boundaryChecked
 
    infSupBorder:
     neg deltay
     moveD deltay, ypos
-    moveD deltay, ypos    
+    moveD deltay, ypos   
+    sub dummy, 1
+    jz setErase
+    jmp boundaryChecked
+    
+    setErase:
+    xor borrar, 1
     jmp boundaryChecked
 
   boundaryChecked: 
@@ -146,6 +169,43 @@ checkCoordinates proc
   ret
 checkCoordinates endp
 
+setErasePixels proc
+	push ax
+	push bx
+	cmp borrar, 1
+	jnz noSetPixel
+	coordenadas ypos, xpos
+	mov erasePixel[bx], 1
+	
+	noSetPixel:
+	pop bx
+	pop ax
+	ret
+setErasePixels endp
+
+;Estoy trabajando en esta parte
+eraser proc
+	push ax
+	push cx
+	push bx
+	
+	mov cx, 2000
+	mov bx, 0
+	checkErase:
+		cmp erasePixel[bx], 1
+		jnz doNothing ;If el pixel no es cero, sal de la funcion
+		mov ax, 0ffffh
+		mov es:[bx], ax 
+		doNothing:
+		inc bx
+		inc bx
+	loop checkErase
+	
+	pop bx
+	pop cx
+	pop ax
+	ret
+eraser endp
 
 end main
 	
