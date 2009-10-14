@@ -21,6 +21,8 @@ changeDirection proc
   ;-x y| x y;
   ;-x-y| x -y;
 
+  push ax  
+
   cmp deltax,0 
   jl caseB; if is negative
    
@@ -39,7 +41,8 @@ changeDirection proc
     mov deltax,ax
     jmp changedDirection
 
-  changedDirection: ret
+  changedDirection: pop ax 
+                    ret
 changeDirection endp
 
   
