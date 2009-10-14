@@ -8,15 +8,15 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	xpos db 1
 	ypos db 1
 	delay dw 03ffh
-	rebotes db 2
-	dummy db ?
+	rebotes db 2 
+	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 0
 	erasePixel db 4000 dup(0)
 
 	
 .code
 	
-;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx
+;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx(Creado por Jaime el 13 de octubre de 2009)
 coordenadas macro fila, columna
 	push ax
 	mov al, fila
@@ -32,6 +32,7 @@ coordenadas macro fila, columna
 	pop ax
 endm
 
+;Macro que actualiza la posicion del objeto utilizando como parametros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
 moveD macro delta, pos
 	push ax
 	mov al, delta
@@ -42,8 +43,18 @@ moveD macro delta, pos
 	pop ax
 endm
 
+;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
+setErase macro 
+	local noSetErase
+	sub dummy, 1
+	jnz noSetErase
+	xor borrar, 1
+	
+	noSetErase:
+endm
 
-;Programa simple que simula el movimiento de un objeto en una pantalla de video, usa deltax y deltay para determinar cuanto se mueve el objeto
+
+;Programa simple que simula el movimiento de un objeto en una pantalla de video, usa deltax y deltay para determinar cuanto se mueve el objeto(Creado por Jaime el 13 de octubre de 2009)
 main proc
 	mov ax, @data
 	mov ds, ax
@@ -91,7 +102,7 @@ moveOb proc
 	ret
 moveOb endp
 
-;Esta subrutina borra cualquier cosa que se encuentre en la pantalla de DOS
+;Esta subrutina borra cualquier cosa que se encuentre en la pantalla de DOS(Creado por Jaime el 13 de octubre de 2009)
 clear proc
 	push cx
 	push bx
@@ -113,7 +124,7 @@ clear proc
 	ret
 clear endp
 
-;Esta subrutina manipula la velocidad a la que va a correr el programa utilizando la variable delay
+;Esta subrutina manipula la velocidad a la que va a correr el programa utilizando la variable delay(Creado por Jaime el 13 de octubre de 2009)
 sleep proc
 	push cx
 	
@@ -130,6 +141,7 @@ sleep proc
 	ret
 sleep endp
 
+;Verifica si el objeto se salio de la pantalla y si esto ocurre, cambia la direccion a la que se va a mover
 checkCoordinates proc
 
   cmp xpos,0
@@ -145,30 +157,20 @@ checkCoordinates proc
   jmp boundaryChecked
   
   rgtLftBorder:
-    neg deltax
-    moveD deltax, xpos
-    moveD deltax, xpos
-    sub dummy, 1
-    jz setErase
+    call changeDx
     jmp boundaryChecked
 
    infSupBorder:
-    neg deltay
-    moveD deltay, ypos
-    moveD deltay, ypos   
-    sub dummy, 1
-    jz setErase
+    call changeDy
     jmp boundaryChecked
     
-    setErase:
-    xor borrar, 1
-    jmp boundaryChecked
 
   boundaryChecked: 
   
   ret
 checkCoordinates endp
 
+;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
 setErasePixels proc
 	push ax
 	push bx
@@ -183,7 +185,7 @@ setErasePixels proc
 	ret
 setErasePixels endp
 
-;Estoy trabajando en esta parte
+;Borra la parte de la pantalla que se debe borrar luego de que el objeto rebota varias veces en la pantalla (Creado por Jaime el 14 de octubre de 2009)
 eraser proc
 	push ax
 	push cx
@@ -192,8 +194,8 @@ eraser proc
 	mov cx, 2000
 	mov bx, 0
 	checkErase:
-		cmp erasePixel[bx], 1
-		jnz doNothing ;If el pixel no es cero, sal de la funcion
+		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
+		jnz doNothing ;If el pixel no es cero, vuelve a iterar
 		mov ax, 0ffffh
 		mov es:[bx], ax 
 		doNothing:
@@ -206,6 +208,20 @@ eraser proc
 	pop ax
 	ret
 eraser endp
+
+changeDx proc
+	neg deltax
+	moveD deltax, xpos
+	setErase
+	ret
+changeDx endp
+
+changeDy proc
+	neg deltay
+	moveD deltay, ypos
+	setErase
+	ret
+changeDy endp
 
 end main
 	
