@@ -7,7 +7,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
-	delay dw 05ffh
+	delay dw 03ffh
 	
 .code
 ;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx
@@ -26,33 +26,13 @@ coordenadas macro fila, columna
 	pop ax
 endm
 
-checkCoordinates macro x, y
-  local imageAtBorder
-  local boundaryChecked
-  cmp x,0
-  jl imageAtBorder; if x is negative
-  cmp x,80
-  jg imageAtBorder; if x is bigger 
-  
-  cmp y,0
-  jl imageAtBorder; if y is negative
-  cmp y,25
-  jg imageAtBorder; if y is bigger than 25
-
-  jmp boundaryChecked
-  imageAtBorder: 
-  call changeDirection
-  boundaryChecked: 
-endm
-
 moveD macro delta, pos
 	push ax
-	push bx
 	mov al, delta
 	mov ah, 0
 	mov bl, pos
 	add bl, al
-	pop bx
+	mov pos, bl
 	pop ax
 endm
 
@@ -64,7 +44,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 10
+	mov cx, 500
 	
 	again:
 	call moveOb
@@ -90,13 +70,11 @@ moveOb proc
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	checkCoordinates xpos, ypos
-	mov ypos, bl
+	call checkCoordinates
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkCoordinates xpos, ypos
-	mov xpos, bl
+	call checkCoordinates
 	pop bx
 	pop ax
 	ret
@@ -137,38 +115,36 @@ sleep proc
 	ret
 sleep endp
 
-changeDirection proc
-  push ax
-  ;How direction will be changed
-  ;x y | x -y
-  ;x -y| -x -y;
-  ;-x y| x y;
-  ;-x-y| x -y;
+checkCoordinates proc
 
-  cmp deltax,0 
-  jl caseB; if is negative
-   
-  cmp deltay,0
-  jl caseB; if is negative
+  cmp xpos,0
+  jl rgtLftBorder ;if x is negative
+  cmp xpos,79
+  jg rgtLftBorder; if x is bigger 
   
-  jmp caseA
-
-  caseA:
-    neg deltay
-    moveD deltay, ypos
-    moveD deltay, ypos
-    jmp changedDirection
-
-  caseB:
+  
+  cmp ypos,0
+  jl infSupBorder; if y is negative
+  cmp ypos,24
+  jg infSupBorder; if y is bigger than 25
+  jmp boundaryChecked
+  
+  rgtLftBorder:
     neg deltax
     moveD deltax, xpos
     moveD deltax, xpos
-    jmp changedDirection
+    jmp boundaryChecked
 
-  changedDirection: 
-  pop ax
+   infSupBorder:
+    neg deltay
+    moveD deltay, ypos
+    moveD deltay, ypos    
+    jmp boundaryChecked
+
+  boundaryChecked: 
+  
   ret
-changeDirection endp
+checkCoordinates endp
 
 
 end main
