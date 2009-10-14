@@ -1,4 +1,4 @@
-
+;Check if the coordinates are withing the screen boundaries
 checkCoordinates macro x, y
   local imageAtBorder
   local boundaryChecked
@@ -17,6 +17,7 @@ checkCoordinates macro x, y
   boundaryChecked: ret
 endm
 
+;Changes a moving object's direction
 changeDirection proc
   push ax
   ;How direction will be changed
@@ -52,6 +53,7 @@ changeDirection proc
                     ret
 changeDirection endp
 
+;Updates the moving object location
 updateImage proc
  push dx; safeguard dx
  push cx; safeguard cx
@@ -62,7 +64,7 @@ updateImage proc
   push cx
   mov cx,25; 25 is the height of the screen
   innerLoop:
-    inc dl
+    inc dl; increment y coordinate
     coordenadas dl, dh
     cmp es:[bx],0; Verify if it contains a pixel
     jg updatePixel; If it contains a pixel update it
@@ -78,7 +80,7 @@ updateImage proc
                  pop ax; restore ax		    
     finished: loop innerLoop
     pop cx
-    inc dh
+    inc dh; increment x coordinate
   loop outerLoop
  pop cx; restore cx
  pop dx; restore dx
