@@ -1,8 +1,11 @@
+
 checkCoordinates macro x, y
+  local imageAtBorder
+  local boundaryChecked
   cmp x,0
   jl imageAtBorder; if x is negative
   cmp x,80
-  jg imageAtBorder; if x is bigger than 80
+  jg imageAtBorder; if x is bigger 
   
   cmp y,0
   jl imageAtBorder; if y is negative
@@ -15,6 +18,7 @@ checkCoordinates macro x, y
 endm
 
 changeDirection proc
+  push ax
   ;How direction will be changed
   ;incoming | outgoing
   ;x y | x -y
@@ -34,12 +38,14 @@ changeDirection proc
 
   caseA:
     neg deltay
-    mov deltay,ax
+    moveD deltay, ypos
+    moveD deltay, ypos
     jmp changedDirection
 
   caseB:
     neg deltax
-    mov deltax,ax
+    moveD deltax, xpos
+    moveD deltax, xpos
     jmp changedDirection
 
   changedDirection: pop ax 
