@@ -242,17 +242,22 @@ moveOb endp
 
 doRender proc
          push ax
+         push bx
          push cx
 
-         renderLoop:
+         mov bx,0
          mov cx, 4000
-	 mov ax, render[cx]
-         mov es:[cx], ax
+
+         renderLoop:    
+	 mov ax, render[bx]
+         mov es:[bx], ax
+         inc bx
+         inc bx
          loop renderLoop
          
 	 pop cx
+         pop bx
          pop ax
-
 doRender endp
 
 
