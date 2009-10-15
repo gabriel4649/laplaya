@@ -12,6 +12,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 0
 	erasePixel db 4000 dup(0)
+        render db 4000 dup(0)
 	red db 44h
 	white db 0ffh
 
@@ -73,11 +74,33 @@ setErase macro
 endm
 
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
-colorPixel macro fila, columna, color
+colorPixel macro fila, columna, color, memoria
+	local escribirABorron
+        local escribirARender
+        local escribirAVideo
+        local terminado
+
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
-	mov es:[bx], ax	
+        cmp memoria, 1
+        je escribirABorron
+        cmp memoria, 2
+        je escribirARender
+        cmp memoria, 3
+        je escribirAVideo
+
+        escribirABorron: mov erasePixel[bx], ax
+        jmp terminado 
+
+        escribirAVideo: mov render[bx], ax
+	jmp terminado
+
+	escribirAVideo: mov es:[bx], ax	
+        jmp terminado
+
+
+        terminado:
 endm
 
 checkCoordinatesnew macro xpos, ypos, widthh, height
@@ -217,6 +240,22 @@ moveOb proc
 	ret
 moveOb endp
 
+doRender proc
+         push ax
+         push cx
+
+         renderLoop:
+         mov cx, 4000
+	 mov ax, render[cx]
+         mov es:[cx], ax
+         loop renderLoop
+         
+	 pop cx
+         pop ax
+
+doRender endp
+
+
 ;Esta subrutina borra cualquier cosa que se encuentre en la pantalla de DOS(Creado por Jaime el 13 de octubre de 2009)
 clear proc
 	push cx
@@ -292,7 +331,7 @@ eraser proc
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
 		jnz doNothing ;If el pixel no es cero, vuelve a iterar
 		mov ax, 0ffffh
-		mov es:[bx], ax 
+		mov render[bx], ax 
 		doNothing:
 		inc bx
 		inc bx
@@ -334,7 +373,7 @@ mushroom proc
 	
 	mov cx, 4
 	supRed:
-		colorpixel ypos, xpos, red
+		colorpixel ypos, xpos, red, 2
 		add xpos, 1
 	loop supRed
 	add ypos, 1
@@ -345,7 +384,7 @@ mushroom proc
 	mov cx, 6
 	
 	infRed:
-		colorpixel ypos, xpos, red
+		colorpixel ypos, xpos, red, 2
 		add xpos, 1
 	loop infRed
 	add ypos, 1
@@ -356,7 +395,7 @@ mushroom proc
 	add xpos, 1
 	mov cx, 4
 	whitePart:
-		colorpixel ypos, xpos, white
+		colorpixel ypos, xpos, white, 2
 		add xpos, 1
 	loop whitePart
 	
