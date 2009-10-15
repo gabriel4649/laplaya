@@ -12,6 +12,8 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 0
 	erasePixel db 4000 dup(0)
+	red db 44h
+	white db 0ffh
 
 	
 .code
@@ -30,68 +32,6 @@ coordenadas macro fila, columna
 	add bl, columna
 	adc bh, 0
 	pop ax
-endm
-
-checkCoordinatesnew macro xpos, ypos, width, height
-
-;Check upper left corner
-checkPixel xpos, ypos
-
-;Check upper right corner
-push ax
-push bx
-mov bx, xpos
-mov ax, width
-push xpos
-sum bx, ax
-mov xpos, bx
-checkPixel xpos, ypos
-mov bx, ypos
-mov ax, height
-push ypos
-sum bx, ax
-mov ypos, bx
-;Check lower right corner
-checkPixel xpos, ypos
-pop ypos
-pop xpos
-mov bx, ypos
-mox ax, height
-push ypos
-sum bx, ax
-mov ypos, bx
-;Check lower left corner
-checkPixel xpos, ypos
-pop ypos
-pop bx
-pop ax
-
-endm
-
-checkPixel macro xpos, ypos
-
-  cmp xpos,0
-  jl rgtLftBorder ;if x is negative
-  cmp xpos,79
-  jg rgtLftBorder; if x is bigger 
-  
-  
-  cmp ypos,0
-  jl infSupBorder; if y is negative
-  cmp ypos,24
-  jg infSupBorder; if y is bigger than 25
-  jmp boundaryChecked
-  
-  rgtLftBorder:
-    call changeDx
-    jmp boundaryChecked
-
-   infSupBorder:
-    call changeDy
-    jmp boundaryChecked
-
-  boundaryChecked:
-
 endm
 
 ;Macro que actualiza la posicion del objeto utilizando como parametros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
@@ -132,6 +72,83 @@ setErase macro
         pop ax
 endm
 
+;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
+colorPixel macro fila, columna, color
+	coordenadas fila, columna
+	mov ah, color
+	mov al, 0
+	mov es:[bx], ax	
+endm
+
+checkCoordinatesnew macro xpos, ypos, widthh, height
+
+
+;Check upper left corner
+checkPixel xpos, ypos
+
+;Check upper right corner
+push ax
+push bx
+mov bh, 0
+mov bl, xpos
+mov ax, widthh
+push xpos
+add bl, al
+adc bh, 0
+mov xpos, bx
+checkPixel xpos, ypos
+mov bl, ypos
+mov ax, height
+push ypos
+add bl, al
+adc bh, 0
+mov ypos, bl
+;Check lower right corner
+checkPixel xpos, ypos
+pop ypos
+pop xpos
+mov bl, ypos
+mov ax, height
+push ypos
+add bl, al
+mov ypos, bl
+;Check lower left corner
+checkPixel xpos, ypos
+pop ypos
+pop bx
+pop ax
+
+endm
+
+checkPixel macro xpos, ypos
+
+  local rgtLftBorder
+  local infSupBorder
+  local boundaryChecked
+  cmp xpos,0
+  jl rgtLftBorder ;if x is negative
+  cmp xpos,79
+  jg rgtLftBorder; if x is bigger 
+  
+  
+  cmp ypos,0
+  jl infSupBorder; if y is negative
+  cmp ypos,24
+  jg infSupBorder; if y is bigger than 25
+  jmp boundaryChecked
+  
+  rgtLftBorder:
+    call changeDx
+    jmp boundaryChecked
+
+   infSupBorder:
+    call changeDy
+    jmp boundaryChecked
+
+  boundaryChecked:
+
+endm
+
 
 ;Programa simple que simula el movimiento de un objeto en una pantalla de video, usa deltax y deltay para determinar cuanto se mueve el objeto(Creado por Jaime el 13 de octubre de 2009)
 main proc
@@ -147,15 +164,14 @@ main proc
 	again:
 	call setErasePixels
 	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+
 	
 	coordenadas ypos, xpos
 	
 	call clear
 	call eraser
 	
-	mov al, 'Q'
-	mov ah, 0fh
-	mov es:[bx], ax
+	call mushroom
 	call sleep
 	
 	loop again
@@ -171,11 +187,11 @@ moveOb proc
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	call checkCoordinates
+	checkCoordinatesnew xpos, ypos, 6, 3
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	call checkCoordinates
+	;checkCoordinatesnew xpos, ypos, 6, 3
 	pop bx
 	pop ax
 	ret
@@ -221,33 +237,6 @@ sleep proc
 sleep endp
 
 ;Verifica si el objeto se salio de la pantalla y si esto ocurre, cambia la direccion a la que se va a mover
-checkCoordinates proc
-
-  cmp xpos,0
-  jl rgtLftBorder ;if x is negative
-  cmp xpos,79
-  jg rgtLftBorder; if x is bigger 
-  
-  
-  cmp ypos,0
-  jl infSupBorder; if y is negative
-  cmp ypos,24
-  jg infSupBorder; if y is bigger than 25
-  jmp boundaryChecked
-  
-  rgtLftBorder:
-    call changeDx
-    jmp boundaryChecked
-
-   infSupBorder:
-    call changeDy
-    jmp boundaryChecked
-    
-
-  boundaryChecked: 
-  
-  ret
-checkCoordinates endp
 
 ;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
 setErasePixels proc
@@ -308,6 +297,60 @@ changeDy proc
 	setErase
 	ret
 changeDy endp
+
+;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
+
+mushroom proc
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	mov bx, 0
+	mov dh, ypos
+	mov dl, xpos
+	push dx
+	add xpos, 1
+	
+	mov cx, 4
+	supRed:
+		colorpixel ypos, xpos, red
+		add xpos, 1
+	loop supRed
+	add ypos, 1
+	
+	pop dx
+	mov xpos, dl
+	push dx
+	mov cx, 6
+	
+	infRed:
+		colorpixel ypos, xpos, red
+		add xpos, 1
+	loop infRed
+	add ypos, 1
+	
+	pop dx
+	mov xpos, dl
+	push dx
+	add xpos, 1
+	mov cx, 4
+	whitePart:
+		colorpixel ypos, xpos, white
+		add xpos, 1
+	loop whitePart
+	
+	pop dx
+	mov xpos, dl
+	mov ypos, dh
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+mushroom endp
+
 
 end main
 	
