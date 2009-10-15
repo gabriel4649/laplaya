@@ -46,11 +46,28 @@ endm
 ;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
 setErase macro 
 	local noSetErase
+        local erasing
+        local invertirBorrar      
+
+        push ax
+
+        cmp borrar, 1
+        je erasing
 	sub dummy, 1
 	jnz noSetErase
-	xor borrar, 1
+	jmp invertirBorrar
 	
+	erasing: 
+        add dummy, 1
+        mov al,rebotes
+        cmp dummy,al
+        jnz noSetErase
+
+        invertirBorrar: 
+        xor borrar, 1
+        
 	noSetErase:
+        pop ax
 endm
 
 
