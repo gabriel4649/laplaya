@@ -7,7 +7,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
-	delay dw 03ffh
+	delay dw 01ffh
 	rebotes db 2 
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 0
@@ -78,7 +78,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 250
+	mov cx, 1000
 	mov al, rebotes
 	mov dummy, al
 	
@@ -192,11 +192,18 @@ setErasePixels proc
 	push ax
 	push bx
 	cmp borrar, 1
-	jnz noSetPixel
+        jnz noSetPixel
 	coordenadas ypos, xpos
 	mov erasePixel[bx], 1
+	jmp finished
+        
+        
 	
 	noSetPixel:
+        coordenadas ypos, xpos
+	mov erasePixel[bx], 0
+        
+        finished:
 	pop bx
 	pop ax
 	ret
