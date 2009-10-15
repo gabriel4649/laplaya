@@ -87,34 +87,54 @@ checkCoordinatesnew macro xpos, ypos, widthh, height
 checkPixel xpos, ypos
 
 ;Check upper right corner
-push ax
-push bx
+push ax; safeguard ax
+push bx; safeguard bx
+push dx; safeguard dx
+
+mov dh, ypos; dh will store ypos
+mov dl, xpos; dl will store xpos
+push dx; safeguard the original xpos and ypos
+
+mov dh, ypos
+mov dl, xpos
+push dx; safe for future use
+
 mov bh, 0
 mov bl, xpos
 mov ax, widthh
-push xpos
-add bl, al
+
+add bl, al; add xpos and widthh
 adc bh, 0
 mov xpos, bx
 checkPixel xpos, ypos
+
+;Check lower right corner
+mov bh, 0
 mov bl, ypos
 mov ax, height
 push ypos
-add bl, al
+add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
-;Check lower right corner
 checkPixel xpos, ypos
-pop ypos
-pop xpos
+
+;Check lower left corner
+pop dx; Get original xpos and ypos values
+mov ypos, dh; restore ypos
+mov xpos, dl; restore xpos
+
+mov bh, 0
 mov bl, ypos
 mov ax, height
-push ypos
-add bl, al
+add bl, al; add ypos and height
+adc bh, 0
 mov ypos, bl
-;Check lower left corner
 checkPixel xpos, ypos
-pop ypos
+
+;Restore values
+pop dx
+mov ypos, dh
+mov xpos, dl
 pop bx
 pop ax
 
