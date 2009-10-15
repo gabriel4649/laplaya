@@ -108,7 +108,7 @@ updateImage proc
                  sum dh,deltax
                  sum dl,deltay 
                  push ax; safeguard ax
-                 mov bx,ax; save original coordinates               
+                 mov ax,bx; save original coordinates               
                  coordenadas dl, dh; get new coordinates
                  mov es:[bx],es:[ax]; move pixel
                  mov es:[ax],0; delete old pixel
