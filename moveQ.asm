@@ -32,6 +32,68 @@ coordenadas macro fila, columna
 	pop ax
 endm
 
+checkCoordinatesnew macro xpos, ypos, width, height
+
+;Check upper left corner
+checkPixel xpos, ypos
+
+;Check upper right corner
+push ax
+push bx
+mov bx, xpos
+mov ax, width
+push xpos
+sum bx, ax
+mov xpos, bx
+checkPixel xpos, ypos
+mov bx, ypos
+mov ax, height
+push ypos
+sum bx, ax
+mov ypos, bx
+;Check lower right corner
+checkPixel xpos, ypos
+pop ypos
+pop xpos
+mov bx, ypos
+mox ax, height
+push ypos
+sum bx, ax
+mov ypos, bx
+;Check lower left corner
+checkPixel xpos, ypos
+pop ypos
+pop bx
+pop ax
+
+endm
+
+checkPixel macro xpos, ypos
+
+  cmp xpos,0
+  jl rgtLftBorder ;if x is negative
+  cmp xpos,79
+  jg rgtLftBorder; if x is bigger 
+  
+  
+  cmp ypos,0
+  jl infSupBorder; if y is negative
+  cmp ypos,24
+  jg infSupBorder; if y is bigger than 25
+  jmp boundaryChecked
+  
+  rgtLftBorder:
+    call changeDx
+    jmp boundaryChecked
+
+   infSupBorder:
+    call changeDy
+    jmp boundaryChecked
+
+  boundaryChecked:
+
+endm
+
 ;Macro que actualiza la posicion del objeto utilizando como parametros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
 moveD macro delta, pos
 	push ax
