@@ -7,6 +7,10 @@ Title Programa que tiene una subrutina que dibuja el background del proyecto de 
 	blue db 11h
 	green db 22h
 	brown db 66h
+	render db 4000 dup(0)
+	memoria db 2
+	erasePixel db 4000 dup(0)
+
 .code
 
 coordenadas macro fila, columna
@@ -36,7 +40,7 @@ cloud macro
 	push dx
 	mov cx, 6
 	paintingSupCloud:
-		colorPixel dh, dl, white
+		colorPixel dh, dl, white, memoria
 		inc dl
 	loop paintingSupCloud
 	
@@ -50,7 +54,7 @@ cloud macro
 		push cx
 		mov cx, 10
 		paintingMid:
-			colorPixel dh, dl, white
+			colorPixel dh, dl, white, memoria
 			inc dl
 		loop paintingMid
 		mov al, dh
@@ -67,7 +71,7 @@ cloud macro
 	push dx
 	mov cx, 6
 	paintingInfCloud:
-		colorPixel dh, dl, white
+		colorPixel dh, dl, white, memoria
 		inc dl
 	loop paintingInfCloud
 	pop dx
@@ -89,7 +93,7 @@ paintingBlock:
 	push cx
 	mov cx, 4
 	painting:
-		colorPixel dh, dl, brown
+		colorPixel dh, dl, brown, memoria
 		inc dl
 	loop painting
 	mov al, dh
@@ -116,7 +120,7 @@ push dx
 
 mov cx, 7
 paintingBushInf:
-	colorPixel dh, dl, green
+	colorPixel dh, dl, green, memoria
 	inc dl
 loop paintingBushInf
 
@@ -128,7 +132,7 @@ add dl, 1
 mov cx, 5
 
 paintingBushMid:
-	colorPixel dh, dl, green
+	colorPixel dh, dl, green, memoria
 	inc dl
 loop paintingBushMid
 
@@ -139,7 +143,7 @@ sub dh, 2
 add dl, 2
 mov cx, 3
 paintingBushSup:
-	colorPixel dh, dl, green
+	colorPixel dh, dl, green, memoria
 	inc dl
 loop paintingBushSup
 
@@ -150,11 +154,40 @@ endm
 
 
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video(creado por Jaime 15 de octubre de 2009)
-colorPixel macro fila, columna, color
+;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
+colorPixel macro fila, columna, color, memoria
+	local escribirABorron
+        local escribirARender
+        local escribirAVideo
+        local terminado
+
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
-	mov es:[bx], ax	
+        cmp memoria, 1
+        je escribirABorron
+        cmp memoria, 2
+        je escribirARender
+        cmp memoria, 3
+        je escribirAVideo
+
+        escribirABorron: 
+	mov erasePixel[bx], al
+	inc bx
+	mov erasePixel[bx], ah
+        jmp terminado 
+
+        escribirARender:
+	mov render[bx], al
+	inc bx
+	mov render[bx], ah
+	jmp terminado
+
+	escribirAVideo: mov es:[bx], ax	
+        jmp terminado
+
+
+        terminado:
 endm
 
 main proc
@@ -181,8 +214,9 @@ background proc
 	paintingSky:
 		mov ah, blue
 		mov al, 0
-		mov es:[bx], ax
+		mov render[bx], al
 		inc bx
+		mov render[bx], ah
 		inc bx
 	loop paintingSky
 	
@@ -203,7 +237,7 @@ background proc
 		push cx
 		mov cx, 9
 		paintingSup:
-			colorPixel dh, dl, green
+			colorPixel dh, dl, green, memoria
 			inc dl
 		loop paintingSup
 		mov al, dh
@@ -224,7 +258,7 @@ background proc
 		push cx
 		mov cx, 7
 		paintingInf:
-			colorPixel dh, dl, green
+			colorPixel dh, dl, green, memoria
 			inc dl
 		loop paintingInf
 		mov al, dh
@@ -276,6 +310,30 @@ background proc
 	pop ax
 	ret
 background endp
+
+
+doRender proc
+         push ax
+         push bx
+         push cx
+
+         mov bx,0
+         mov cx, 2000
+
+         renderLoop:    
+	 mov al, render[bx]
+	 inc bx
+	 mov ah, render[bx]
+	 dec bx
+         mov es:[bx], ax
+         inc bx
+         inc bx
+         loop renderLoop
+         
+	 pop cx
+         pop bx
+         pop ax
+doRender endp
 
 end main
 
