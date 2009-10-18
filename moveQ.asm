@@ -137,6 +137,8 @@ colorPixel macro fila, columna, color, memoria
         local escribirAVideo
         local terminado
 
+	push ax
+	push bx
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
@@ -147,17 +149,25 @@ colorPixel macro fila, columna, color, memoria
         cmp memoria, 3
         je escribirAVideo
 
-        escribirABorron: mov erasePixel[bx], ax
+        escribirABorron: 
+	mov erasePixel[bx], al
+	inc bx
+	mov erasePixel[bx], ah
         jmp terminado 
 
-        escribirAVideo: mov render[bx], ax
+        escribirARender:
+	mov render[bx], al
+	inc bx
+	mov render[bx], ah
 	jmp terminado
 
 	escribirAVideo: mov es:[bx], ax	
         jmp terminado
-
+	
 
         terminado:
+	pop bx
+	pop ax
 endm
 
 checkCoordinatesnew macro xpos, ypos, widthh, height
@@ -303,10 +313,13 @@ doRender proc
          push cx
 
          mov bx,0
-         mov cx, 4000
+         mov cx, 2000
 
          renderLoop:    
-	 mov ax, render[bx]
+	 mov al, render[bx]
+	 inc bx
+	 mov ah, render[bx]
+	 dec bx
          mov es:[bx], ax
          inc bx
          inc bx
@@ -315,6 +328,7 @@ doRender proc
 	 pop cx
          pop bx
          pop ax
+	 ret
 doRender endp
 
 
@@ -366,21 +380,22 @@ setErasePixels proc
         
         mov ah, white
         mov al, red
+
+        mov bx, 1
      
 	cmp borrar, 1
         jnz noSetPixel
-        mov white,1
+        mov white, 1
         mov red, 1
-	mushroom 1
+     
+	mushroom bx
         
 	jmp finished
-        
-        
-	
+        	
 	noSetPixel:
 	mov white,0
         mov red, 0
-	mushroom 1
+	mushroom bx
         
         finished:
         mov white, ah
