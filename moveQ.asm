@@ -202,7 +202,6 @@ pop ax
 endm
 
 
-	
 ;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx(Creado por Jaime el 13 de octubre de 2009)
 coordenadas macro fila, columna
 	push ax
@@ -381,8 +380,8 @@ checkPixel macro xpos, ypos
   
   cmp ypos,0
   jl infSupBorder; if y is negative
-  cmp ypos,24
-  jg infSupBorder; if y is bigger than 25
+  cmp ypos,22
+  jg infSupBorder; if y is bigger than 22
   jmp boundaryChecked
   
   rgtLftBorder:
