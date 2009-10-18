@@ -161,6 +161,8 @@ colorPixel macro fila, columna, color, memoria
         local escribirAVideo
         local terminado
 
+	push ax
+	push bx
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
@@ -185,9 +187,11 @@ colorPixel macro fila, columna, color, memoria
 
 	escribirAVideo: mov es:[bx], ax	
         jmp terminado
-
+	
 
         terminado:
+	pop bx
+	pop ax
 endm
 
 main proc
@@ -197,7 +201,7 @@ main proc
 	mov es, ax
 	
 	call background
-	
+	call doRender
 	
 	mov ax, 4c00h
 	int 21h
@@ -224,8 +228,9 @@ background proc
 	paintingGround:
 		mov ah, brown
 		mov al, 0
-		mov es:[bx], ax
+		mov render[bx], al
 		inc bx
+		mov render[bx], ah
 		inc bx
 	loop paintingGround
 	
@@ -333,6 +338,7 @@ doRender proc
 	 pop cx
          pop bx
          pop ax
+	 ret
 doRender endp
 
 end main
