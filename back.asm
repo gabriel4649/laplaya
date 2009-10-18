@@ -8,7 +8,6 @@ Title Programa que tiene una subrutina que dibuja el background del proyecto de 
 	green db 22h
 	brown db 66h
 	render db 4000 dup(0)
-	memoria db 2
 	erasePixel db 4000 dup(0)
 
 .code
@@ -40,7 +39,7 @@ cloud macro
 	push dx
 	mov cx, 6
 	paintingSupCloud:
-		colorPixel dh, dl, white, memoria
+		colorPixel dh, dl, white, 2
 		inc dl
 	loop paintingSupCloud
 	
@@ -54,7 +53,7 @@ cloud macro
 		push cx
 		mov cx, 10
 		paintingMid:
-			colorPixel dh, dl, white, memoria
+			colorPixel dh, dl, white, 2
 			inc dl
 		loop paintingMid
 		mov al, dh
@@ -71,7 +70,7 @@ cloud macro
 	push dx
 	mov cx, 6
 	paintingInfCloud:
-		colorPixel dh, dl, white, memoria
+		colorPixel dh, dl, white, 2
 		inc dl
 	loop paintingInfCloud
 	pop dx
@@ -93,7 +92,7 @@ paintingBlock:
 	push cx
 	mov cx, 4
 	painting:
-		colorPixel dh, dl, brown, memoria
+		colorPixel dh, dl, brown, 2
 		inc dl
 	loop painting
 	mov al, dh
@@ -120,7 +119,7 @@ push dx
 
 mov cx, 7
 paintingBushInf:
-	colorPixel dh, dl, green, memoria
+	colorPixel dh, dl, green, 2
 	inc dl
 loop paintingBushInf
 
@@ -132,7 +131,7 @@ add dl, 1
 mov cx, 5
 
 paintingBushMid:
-	colorPixel dh, dl, green, memoria
+	colorPixel dh, dl, green, 2
 	inc dl
 loop paintingBushMid
 
@@ -143,7 +142,7 @@ sub dh, 2
 add dl, 2
 mov cx, 3
 paintingBushSup:
-	colorPixel dh, dl, green, memoria
+	colorPixel dh, dl, green, 2
 	inc dl
 loop paintingBushSup
 
@@ -267,7 +266,7 @@ background proc
 		push cx
 		mov cx, 7
 		paintingInf:
-			colorPixel dh, dl, green, memoria
+			colorPixel dh, dl, green, 2
 			inc dl
 		loop paintingInf
 		mov al, dh
