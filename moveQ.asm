@@ -18,6 +18,63 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 
 	
 .code
+
+;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
+
+mushroom macro location
+	local supRed
+        local infRed
+        local whitePart
+
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	mov bx, 0
+	mov dh, ypos
+	mov dl, xpos
+	push dx
+	add xpos, 1
+	
+	mov cx, 4
+	supRed:
+		colorpixel ypos, xpos, red, location
+		add xpos, 1
+	loop supRed
+	add ypos, 1
+	
+	pop dx
+	mov xpos, dl
+	push dx
+	mov cx, 6
+	
+	infRed:
+		colorpixel ypos, xpos, red, location
+		add xpos, 1
+	loop infRed
+	add ypos, 1
+	
+	pop dx
+	mov xpos, dl
+	push dx
+	add xpos, 1
+	mov cx, 4
+	whitePart:
+		colorpixel ypos, xpos, white, location
+		add xpos, 1
+	loop whitePart
+	
+	pop dx
+	mov xpos, dl
+	mov ypos, dh
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+endm
 	
 ;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx(Creado por Jaime el 13 de octubre de 2009)
 coordenadas macro fila, columna
@@ -214,7 +271,7 @@ main proc
 	call clear
 	call eraser
 	
-	call mushroom
+	mushroom 3
 	call sleep
 	
 	loop again
@@ -306,19 +363,28 @@ sleep endp
 setErasePixels proc
 	push ax
 	push bx
+        
+        mov ah, white
+        mov al, red
+     
 	cmp borrar, 1
         jnz noSetPixel
-	coordenadas ypos, xpos
-	mov erasePixel[bx], 1
+        mov white,1
+        mov red, 1
+	mushroom 1
+        
 	jmp finished
         
         
 	
 	noSetPixel:
-        coordenadas ypos, xpos
-	mov erasePixel[bx], 0
+	mov white,0
+        mov red, 0
+	mushroom 1
         
         finished:
+        mov white, ah
+        mov red, al
 	pop bx
 	pop ax
 	ret
@@ -361,60 +427,6 @@ changeDy proc
 	setErase
 	ret
 changeDy endp
-
-;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
-
-mushroom proc
-	push ax
-	push bx
-	push cx
-	push dx
-	
-	mov bx, 0
-	mov dh, ypos
-	mov dl, xpos
-	push dx
-	add xpos, 1
-	
-	mov cx, 4
-	supRed:
-		colorpixel ypos, xpos, red, 2
-		add xpos, 1
-	loop supRed
-	add ypos, 1
-	
-	pop dx
-	mov xpos, dl
-	push dx
-	mov cx, 6
-	
-	infRed:
-		colorpixel ypos, xpos, red, 2
-		add xpos, 1
-	loop infRed
-	add ypos, 1
-	
-	pop dx
-	mov xpos, dl
-	push dx
-	add xpos, 1
-	mov cx, 4
-	whitePart:
-		colorpixel ypos, xpos, white, 2
-		add xpos, 1
-	loop whitePart
-	
-	pop dx
-	mov xpos, dl
-	mov ypos, dh
-	
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
-mushroom endp
-
 
 end main
 	
