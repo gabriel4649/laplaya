@@ -285,15 +285,16 @@ main proc
 	again:
 	call setErasePixels
 	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-
+        
+        call background; Dibjar background en "render"
+        call eraser; borrar lo que alla que borrar
+        mushroom 2; escribir hongo en "render"
+               
+        call doRender; copiar render a memoria de video
 	
-	coordenadas ypos, xpos
 	
-	call clear
-	call eraser
-	
-	mushroom 3
 	call sleep
+        call clear
 	
 	loop jumpFarther
 	jmp finishMain
@@ -313,7 +314,7 @@ moveOb proc
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	checkCoordinatesnew xpos, ypos, 6, 3
+	checkCoordinatesnew xpos, ypos, 6, 3; 6 y 3 son el ancho y el largo de la imagen
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
