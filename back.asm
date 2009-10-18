@@ -162,17 +162,17 @@ colorPixel macro fila, columna, color, memoria
 
 	push ax
 	push bx
-	push dx
+	push cx
 	
-	mov dx, memoria
+	mov cx, memoria
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
-        cmp dx, 1
+        cmp cx, 1
         je escribirABorron
-        cmp dx, 2
+        cmp cx, 2
         je escribirARender
-        cmp dx, 3
+        cmp cx, 3
         je escribirAVideo
 
         escribirABorron: 
@@ -192,7 +192,7 @@ colorPixel macro fila, columna, color, memoria
 	
 
         terminado:
-	pop dx
+	pop cx
 	pop bx
 	pop ax
 endm
