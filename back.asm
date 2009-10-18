@@ -163,14 +163,17 @@ colorPixel macro fila, columna, color, memoria
 
 	push ax
 	push bx
+	push dx
+	
+	mov dx, memoria
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
-        cmp memoria, 1
+        cmp dx, 1
         je escribirABorron
-        cmp memoria, 2
+        cmp dx, 2
         je escribirARender
-        cmp memoria, 3
+        cmp dx, 3
         je escribirAVideo
 
         escribirABorron: 
@@ -190,6 +193,7 @@ colorPixel macro fila, columna, color, memoria
 	
 
         terminado:
+	pop dx
 	pop bx
 	pop ax
 endm
@@ -242,7 +246,7 @@ background proc
 		push cx
 		mov cx, 9
 		paintingSup:
-			colorPixel dh, dl, green, memoria
+			colorPixel dh, dl, green, 2
 			inc dl
 		loop paintingSup
 		mov al, dh

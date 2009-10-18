@@ -15,6 +15,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
         render db 4000 dup(0)
 	red db 44h
 	white db 0ffh
+	memoria db 2
 
 	
 .code
@@ -139,14 +140,17 @@ colorPixel macro fila, columna, color, memoria
 
 	push ax
 	push bx
+	push dx
+	
+	mov dx, memoria
 	coordenadas fila, columna
 	mov ah, color
 	mov al, 0
-        cmp memoria, 1
+        cmp dx, 1
         je escribirABorron
-        cmp memoria, 2
+        cmp dx, 2
         je escribirARender
-        cmp memoria, 3
+        cmp dx, 3
         je escribirAVideo
 
         escribirABorron: 
@@ -166,6 +170,7 @@ colorPixel macro fila, columna, color, memoria
 	
 
         terminado:
+	pop dx
 	pop bx
 	pop ax
 endm
@@ -180,6 +185,10 @@ checkPixel xpos, ypos
 push ax; safeguard ax
 push bx; safeguard bx
 push dx; safeguard dx
+push cx
+
+mov ch, widthh
+mov cl, height
 
 mov dh, ypos; dh will store ypos
 mov dl, xpos; dl will store xpos
@@ -191,18 +200,18 @@ push dx; safe for future use
 
 mov bh, 0
 mov bl, xpos
-mov ax, widthh
+mov al, ch
 
 add bl, al; add xpos and widthh
 adc bh, 0
-mov xpos, bx
+mov xpos, bl
 checkPixel xpos, ypos
 
 ;Check lower right corner
 mov bh, 0
 mov bl, ypos
-mov ax, height
-push ypos
+mov al, cl
+;push ypos
 add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
@@ -215,13 +224,15 @@ mov xpos, dl; restore xpos
 
 mov bh, 0
 mov bl, ypos
-mov ax, height
+mov al, cl
 add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
 
 ;Restore values
+pop dx
+pop cx
 pop dx
 mov ypos, dh
 mov xpos, dl
@@ -284,8 +295,13 @@ main proc
 	mushroom 3
 	call sleep
 	
-	loop again
+	loop jumpFarther
+	jmp finishMain
 	
+	jumpfarther:
+	jmp again
+	
+	finishMain:
 	mov ax, 4c00h
 	int 21h
 main endp
@@ -388,14 +404,14 @@ setErasePixels proc
         mov white, 1
         mov red, 1
      
-	mushroom bx
+	mushroom 1
         
 	jmp finished
         	
 	noSetPixel:
 	mov white,0
         mov red, 0
-	mushroom bx
+	mushroom 1
         
         finished:
         mov white, ah
@@ -417,7 +433,10 @@ eraser proc
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
 		jnz doNothing ;If el pixel no es cero, vuelve a iterar
 		mov ax, 0ffffh
-		mov render[bx], ax 
+		mov render[bx], al
+		inc bx
+		mov render[bx], ah
+		dec bx
 		doNothing:
 		inc bx
 		inc bx
