@@ -358,10 +358,11 @@ checkPixel xpos, ypos
 
 ;Restore values
 pop dx
-pop cx
-pop dx
 mov ypos, dh
 mov xpos, dl
+pop cx
+pop dx
+
 pop bx
 pop ax
 
@@ -413,14 +414,13 @@ main proc
 	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
         
         call background; Dibjar background en "render"
-        call eraser; borrar lo que alla que borrar
+       call eraser; borrar lo que alla que borrar
         mushroom 2; escribir hongo en "render"
                
         call doRender; copiar render a memoria de video
 	
 	
 	call sleep
-        call clear
 	
 	loop jumpFarther
 	jmp finishMain
@@ -440,11 +440,11 @@ moveOb proc
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	checkCoordinatesnew xpos, ypos, 6, 3; 6 y 3 son el ancho y el largo de la imagen
+	checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	;checkCoordinatesnew xpos, ypos, 6, 3
+	checkCoordinatesnew xpos, ypos, 6, 4
 	pop bx
 	pop ax
 	ret
@@ -473,29 +473,6 @@ doRender proc
          pop ax
 	 ret
 doRender endp
-
-
-;Esta subrutina borra cualquier cosa que se encuentre en la pantalla de DOS(Creado por Jaime el 13 de octubre de 2009)
-clear proc
-	push cx
-	push bx
-	mov bx, 0
-	mov cx, 2000
-	
-	clearall:
-	cmp erasePixel[bx], 1
-	jz noClear ;If el pixel no es cero, sal de la funcion
-	mov ax, 0
-	mov es:[bx], ax 
-	noClear:
-	inc bx
-	inc bx
-	loop clearall
-	
-	pop bx
-	pop cx
-	ret
-clear endp
 
 ;Esta subrutina manipula la velocidad a la que va a correr el programa utilizando la variable delay(Creado por Jaime el 13 de octubre de 2009)
 sleep proc
