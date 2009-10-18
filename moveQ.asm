@@ -279,7 +279,7 @@ colorPixel macro fila, columna, color, memoria
         je escribirAVideo
 
         escribirABorron: 
-	mov erasePixel[bx], al
+	mov erasePixel[bx], ah
 	inc bx
 	mov erasePixel[bx], ah
         jmp terminado 
@@ -413,7 +413,7 @@ main proc
 	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
         
         call background; Dibjar background en "render"
-       call eraser; borrar lo que alla que borrar
+        call eraser; borrar lo que alla que borrar
         mushroom 2; escribir hongo en "render"
                
         call doRender; copiar render a memoria de video
@@ -495,12 +495,9 @@ sleep endp
 ;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
 setErasePixels proc
 	push ax
-	push bx
-        
+	    
         mov ah, white
         mov al, red
-
-        mov bx, 1
      
 	cmp borrar, 1
         jnz noSetPixel
@@ -519,7 +516,7 @@ setErasePixels proc
         finished:
         mov white, ah
         mov red, al
-	pop bx
+
 	pop ax
 	ret
 setErasePixels endp
