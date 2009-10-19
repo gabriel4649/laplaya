@@ -532,7 +532,7 @@ eraser proc
 	checkErase:
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
 		jnz doNothing ;If el pixel no es cero, vuelve a iterar
-		mov ax, 0ffffh
+		mov ax, 0h
 		mov render[bx], al
 		inc bx
 		mov render[bx], ah
