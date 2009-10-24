@@ -18,6 +18,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	blue db 11h
 	green db 22h
 	brown db 66h
+        flag db 0
 .code
 
 ;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
@@ -301,10 +302,8 @@ colorPixel macro fila, columna, color, memoria
 endm
 
 checkCoordinatesnew macro xpos, ypos, widthh, height
-
-
-;Check upper left corner
-checkPixel xpos, ypos
+    local finished
+    local pops
 
 ;Check upper right corner
 push ax; safeguard ax
@@ -314,6 +313,12 @@ push cx
 
 mov ch, widthh
 mov cl, height
+
+;Check upper left corner
+checkPixel xpos, ypos
+cmp flag,1
+je finished
+
 
 mov dh, ypos; dh will store ypos
 mov dl, xpos; dl will store xpos
@@ -331,6 +336,9 @@ add bl, al; add xpos and widthh
 adc bh, 0
 mov xpos, bl
 checkPixel xpos, ypos
+cmp flag,1
+je pops
+
 
 ;Check lower right corner
 mov bh, 0
@@ -341,9 +349,14 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
+cmp flag,1
+je pops
 
 ;Check lower left corner
+pops:
 pop dx; Get original xpos and ypos values
+cmp flag,1
+je finished
 mov ypos, dh; restore ypos
 mov xpos, dl; restore xpos
 
@@ -354,6 +367,10 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
+
+finished:
+
+mov flag, 0
 
 ;Restore values
 pop dx
@@ -386,10 +403,12 @@ checkPixel macro xpos, ypos
   
   rgtLftBorder:
     call changeDx
+    mov flag, 1
     jmp boundaryChecked
 
    infSupBorder:
     call changeDy
+    mov flag, 1
     jmp boundaryChecked
 
   boundaryChecked:
