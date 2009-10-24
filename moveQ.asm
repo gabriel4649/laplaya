@@ -7,11 +7,10 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
-	delay dw 04ffh
-	rebotes db 10
+	delay dw 01ffh
+	rebotes db 2 
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
-	borrar db 3
-        flag db 0
+	borrar db 0
 	erasePixel db 4000 dup(0)
         render db 4000 dup(0)
 	red db 44h
@@ -234,39 +233,24 @@ endm
 setErase macro 
 	local noSetErase
         local erasing
-        local invertirBorrar 
-        local prepare
-        local normal     
+        local invertirBorrar      
 
         push ax
-
-        cmp borrar, 3
-        jne normal
-        sub dummy,1
-        jz prepare
-        jmp noSetErase
-        
-        prepare:
-        mov al, rebotes
-        mov dummy, al
-        mov borrar, 0
-
-        normal:
 
         cmp borrar, 1
         je erasing
 	sub dummy, 1
 	jnz noSetErase
-	mov borrar,1
-        jmp noSetErase
+	jmp invertirBorrar
 	
 	erasing: 
         add dummy, 1
         mov al,rebotes
         cmp dummy,al
         jnz noSetErase
-        mov borrar,3
-        mov dummy, al
+
+        invertirBorrar: 
+        xor borrar, 1
         
 	noSetErase:
         pop ax
@@ -317,8 +301,10 @@ colorPixel macro fila, columna, color, memoria
 endm
 
 checkCoordinatesnew macro xpos, ypos, widthh, height
-local finished
 
+
+;Check upper left corner
+checkPixel xpos, ypos
 
 ;Check upper right corner
 push ax; safeguard ax
@@ -331,12 +317,6 @@ mov cl, height
 
 mov dh, ypos; dh will store ypos
 mov dl, xpos; dl will store xpos
-
-;Check upper left corner
-checkPixel xpos, ypos
-cmp flag,1
-;je finished
-
 push dx; safeguard the original xpos and ypos
 
 mov dh, ypos
@@ -351,8 +331,6 @@ add bl, al; add xpos and widthh
 adc bh, 0
 mov xpos, bl
 checkPixel xpos, ypos
-cmp flag,1
-;je finished
 
 ;Check lower right corner
 mov bh, 0
@@ -363,8 +341,6 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
-cmp flag,1
-;je finished
 
 ;Check lower left corner
 pop dx; Get original xpos and ypos values
@@ -378,11 +354,6 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
-cmp flag,1
-;je finished
-
-finished: 
-mov flag, 0
 
 ;Restore values
 pop dx
@@ -415,12 +386,10 @@ checkPixel macro xpos, ypos
   
   rgtLftBorder:
     call changeDx
-    mov flag, 1
     jmp boundaryChecked
 
    infSupBorder:
     call changeDy
-    mov flag, 1
     jmp boundaryChecked
 
   boundaryChecked:
@@ -529,9 +498,6 @@ setErasePixels proc
 	    
         mov ah, white
         mov al, red
-
-        cmp borrar, 3
-        je dontDoAnything
      
 	cmp borrar, 1
         jnz noSetPixel
@@ -550,8 +516,6 @@ setErasePixels proc
         finished:
         mov white, ah
         mov red, al
-
-        dontDoAnything:
 
 	pop ax
 	ret
