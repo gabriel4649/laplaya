@@ -304,6 +304,12 @@ endm
 checkCoordinatesnew macro xpos, ypos, widthh, height
     local finished
     local pops
+    local reallyFinished
+
+;Check upper left corner
+checkPixel xpos, ypos
+cmp flag, 1
+je reallyFinished
 
 ;Check upper right corner
 push ax; safeguard ax
@@ -314,10 +320,6 @@ push cx
 mov ch, widthh
 mov cl, height
 
-;Check upper left corner
-checkPixel xpos, ypos
-cmp flag,1
-je finished
 
 
 mov dh, ypos; dh will store ypos
@@ -381,6 +383,8 @@ pop dx
 
 pop bx
 pop ax
+
+reallyFinished:
 
 endm
 
