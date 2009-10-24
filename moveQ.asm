@@ -7,10 +7,11 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
-	delay dw 0fffh
+	delay dw 04ffh
 	rebotes db 10
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 3
+        flag db 0
 	erasePixel db 4000 dup(0)
         render db 4000 dup(0)
 	red db 44h
@@ -316,10 +317,8 @@ colorPixel macro fila, columna, color, memoria
 endm
 
 checkCoordinatesnew macro xpos, ypos, widthh, height
+local finished
 
-
-;Check upper left corner
-checkPixel xpos, ypos
 
 ;Check upper right corner
 push ax; safeguard ax
@@ -332,6 +331,12 @@ mov cl, height
 
 mov dh, ypos; dh will store ypos
 mov dl, xpos; dl will store xpos
+
+;Check upper left corner
+checkPixel xpos, ypos
+cmp flag,1
+;je finished
+
 push dx; safeguard the original xpos and ypos
 
 mov dh, ypos
@@ -346,6 +351,8 @@ add bl, al; add xpos and widthh
 adc bh, 0
 mov xpos, bl
 checkPixel xpos, ypos
+cmp flag,1
+;je finished
 
 ;Check lower right corner
 mov bh, 0
@@ -356,6 +363,8 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
+cmp flag,1
+;je finished
 
 ;Check lower left corner
 pop dx; Get original xpos and ypos values
@@ -369,6 +378,11 @@ add bl, al; add ypos and height
 adc bh, 0
 mov ypos, bl
 checkPixel xpos, ypos
+cmp flag,1
+;je finished
+
+finished: 
+mov flag, 0
 
 ;Restore values
 pop dx
@@ -401,10 +415,12 @@ checkPixel macro xpos, ypos
   
   rgtLftBorder:
     call changeDx
+    mov flag, 1
     jmp boundaryChecked
 
    infSupBorder:
     call changeDy
+    mov flag, 1
     jmp boundaryChecked
 
   boundaryChecked:
