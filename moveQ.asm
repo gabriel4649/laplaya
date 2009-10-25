@@ -8,9 +8,9 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	xpos db 1
 	ypos db 1
 	delay dw 05ffh
-	rebotes db 2 
+	rebotes db 5
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
-	borrar db 0
+	borrar db 3
 	erasePixel db 4000 dup(0)
         render db 4000 dup(0)
 	red db 44h
@@ -233,30 +233,43 @@ endm
 ;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
 setErase macro 
 	local noSetErase
-        local erasing
-        local invertirBorrar      
+        local erasing 
+        local normal     
 
         push ax
+
+        cmp borrar, 3; En el estado 3 no hacer nada
+        jnz normal
+        sub dummy,1; Disminuir dummy
+        jnz noSetErase
+        mov al, rebotes
+        mov dummy, al
+        add dummy, 1
+        mov borrar, 0
+
+        normal:
 
         cmp borrar, 1
         je erasing
 	sub dummy, 1
 	jnz noSetErase
-	jmp invertirBorrar
+        mov al, rebotes
+        mov dummy, al
+	mov borrar,1
+        
+        jmp noSetErase
 	
 	erasing: 
-        add dummy, 1
-        mov al,rebotes
-        cmp dummy,al
+        sub dummy, 1
         jnz noSetErase
-
-        invertirBorrar: 
-        xor borrar, 1
+        mov al, rebotes
+        mov dummy, al
+        mov borrar, 3     
         
 	noSetErase:
         pop ax
 endm
-
+cmp dummy,al
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
 colorPixel macro fila, columna, color, memoria
 	local escribirABorron
@@ -345,7 +358,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 500
+	mov cx, 1000
 	mov al, rebotes
 	mov dummy, al
 	
@@ -436,6 +449,9 @@ sleep endp
 
 ;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
 setErasePixels proc
+        cmp borrar, 3
+	je dontDoAnything
+
 	push ax
 	    
         mov ah, white
@@ -443,16 +459,16 @@ setErasePixels proc
      
 	cmp borrar, 1
         jnz noSetPixel
-        mov white, 1
-        mov red, 1
+        mov white, 0
+        mov red, 0
      
 	mushroom 1
         
 	jmp finished
         	
 	noSetPixel:
-	mov white,0
-        mov red, 0
+	mov white,1
+        mov red, 1
 	mushroom 1
         
         finished:
@@ -460,7 +476,9 @@ setErasePixels proc
         mov red, al
 
 	pop ax
+        dontDoAnything:
 	ret
+
 setErasePixels endp
 
 ;Borra la parte de la pantalla que se debe borrar luego de que el objeto rebota varias veces en la pantalla (Creado por Jaime el 14 de octubre de 2009)
