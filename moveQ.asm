@@ -7,7 +7,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
-	delay dw 01ffh
+	delay dw 05ffh
 	rebotes db 2 
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 0
@@ -301,122 +301,40 @@ colorPixel macro fila, columna, color, memoria
 	pop ax
 endm
 
-checkCoordinatesnew macro xpos, ypos, widthh, height
-    local finished
-    local pops
-    local reallyFinished
 
-;Check upper left corner
-checkPixel xpos, ypos
-cmp flag, 1
-je reallyFinished
+;Macro que determina si el objeto se salio de la pantalla y le cambia la direccion para arreglarlo. (Creado por Jaime 24 de octubre de 2009)
+checkPixel macro delta, pos, border, lengthh
 
-;Check upper right corner
-push ax; safeguard ax
-push bx; safeguard bx
-push dx; safeguard dx
-push cx
-
-mov ch, widthh
-mov cl, height
-
-
-
-mov dh, ypos; dh will store ypos
-mov dl, xpos; dl will store xpos
-push dx; safeguard the original xpos and ypos
-
-mov dh, ypos
-mov dl, xpos
-push dx; safe for future use
-
-mov bh, 0
-mov bl, xpos
-mov al, ch
-
-add bl, al; add xpos and widthh
-adc bh, 0
-mov xpos, bl
-checkPixel xpos, ypos
-cmp flag,1
-je pops
-
-
-;Check lower right corner
-mov bh, 0
-mov bl, ypos
-mov al, cl
-;push ypos
-add bl, al; add ypos and height
-adc bh, 0
-mov ypos, bl
-checkPixel xpos, ypos
-cmp flag,1
-je pops
-
-;Check lower left corner
-pops:
-pop dx; Get original xpos and ypos values
-cmp flag,1
-je finished
-mov ypos, dh; restore ypos
-mov xpos, dl; restore xpos
-
-mov bh, 0
-mov bl, ypos
-mov al, cl
-add bl, al; add ypos and height
-adc bh, 0
-mov ypos, bl
-checkPixel xpos, ypos
-
-finished:
-
-mov flag, 0
-
-;Restore values
-pop dx
-mov ypos, dh
-mov xpos, dl
-pop cx
-pop dx
-
-pop bx
-pop ax
-
-reallyFinished:
+  local outBorder
+  local boundaryChecked
+  
+  push ax
+  mov al, border
+  mov ah, lengthh
+  
+  sub al, ah ;Esta resta se hace con el proposito de verificar hasta que punto relativo puede moverse el objeto
+  
+  cmp pos, 0
+  jl outBorder;if pos is negative
+  cmp pos, al
+  jg outBorder; if pos is bigger 
+  jmp boundaryChecked
+  
+  
+  outBorder:
+    changeDelta delta, pos
+    mov flag, 1
+    
+  boundaryChecked:
+  pop ax
 
 endm
 
-checkPixel macro xpos, ypos
-
-  local rgtLftBorder
-  local infSupBorder
-  local boundaryChecked
-  cmp xpos,0
-  jl rgtLftBorder ;if x is negative
-  cmp xpos,79
-  jg rgtLftBorder; if x is bigger 
-  
-  
-  cmp ypos,0
-  jl infSupBorder; if y is negative
-  cmp ypos,22
-  jg infSupBorder; if y is bigger than 22
-  jmp boundaryChecked
-  
-  rgtLftBorder:
-    call changeDx
-    mov flag, 1
-    jmp boundaryChecked
-
-   infSupBorder:
-    call changeDy
-    mov flag, 1
-    jmp boundaryChecked
-
-  boundaryChecked:
-
+;Macro que cambia direccion a la que se mueve el objeto. (Creado por Jaime 24 de octubre de 2009)
+changeDelta macro delta, pos
+	neg delta
+	moveD delta, pos
+	setErase
 endm
 
 
@@ -427,7 +345,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 1000
+	mov cx, 500
 	mov al, rebotes
 	mov dummy, al
 	
@@ -462,11 +380,12 @@ moveOb proc
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
+	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
+	checkPixel deltay, ypos, 25, 3
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkCoordinatesnew xpos, ypos, 6, 4
+	checkPixel deltax, xpos, 79, 5
 	pop bx
 	pop ax
 	ret
@@ -571,19 +490,6 @@ eraser proc
 	ret
 eraser endp
 
-changeDx proc
-	neg deltax
-	moveD deltax, xpos
-	setErase
-	ret
-changeDx endp
-
-changeDy proc
-	neg deltay
-	moveD deltay, ypos
-	setErase
-	ret
-changeDy endp
 
 background proc
 	push ax
