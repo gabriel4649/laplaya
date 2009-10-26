@@ -8,7 +8,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	xpos db 1
 	ypos db 1
 	delay dw 05ffh
-	rebotes db 5
+	rebotes db 10
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 3
 	erasePixel db 4000 dup(0)
@@ -232,37 +232,41 @@ endm
 
 ;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
 setErase macro 
+        ; Borrar
+        ; Estado 3 = No hacer nada, flotar
+        ; Estado 1 = Escribir el background
+        ; Estado 0 = Borrar el background
 	local noSetErase
-        local erasing 
+        local writing
         local normal     
 
-        push ax
+        push ax; Guardar a ax
 
         cmp borrar, 3; En el estado 3 no hacer nada
-        jnz normal
+        jnz normal; Verificar si borrar esta en el estado 0 o 1
         sub dummy,1; Disminuir dummy
-        jnz noSetErase
-        mov al, rebotes
-        mov dummy, al
-        add dummy, 1
-        mov borrar, 0
+        jnz noSetErase; Si no es cero salir del macro
+        mov al, rebotes; Si se llega a cero pasar rebotes a al para restaurar dummy
+        mov dummy, al; Restaurar dummy al numero de rebotes
+        add dummy, 1; Añadirle 1 a dummy porque se le va a restar uno ahora aunque no halla chocado
+        mov borrar, 0; Setear borrar al estado 0, el de borrar. 
 
         normal:
 
-        cmp borrar, 1
-        je erasing
-	sub dummy, 1
-	jnz noSetErase
-        mov al, rebotes
+        cmp borrar, 1; Verificar si esta en el estado 1
+        je writing; Escribir el background
+	sub dummy, 1; Disminuir dummy
+	jnz noSetErase; Si no es cero salir del macro
+        mov al, rebotes; Si es cero restuarar dummy y setear borrar al estado 1
         mov dummy, al
 	mov borrar,1
         
-        jmp noSetErase
+        jmp noSetErase; Salir del macro
 	
-	erasing: 
-        sub dummy, 1
-        jnz noSetErase
-        mov al, rebotes
+	writing: 
+        sub dummy, 1; Disminuir dummy
+        jnz noSetErase; Salir del macro si no es cero
+        mov al, rebotes; ; Si es cero restaurar dummy y pasar al estado 3
         mov dummy, al
         mov borrar, 3     
         
@@ -272,6 +276,10 @@ endm
 cmp dummy,al
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
 colorPixel macro fila, columna, color, memoria
+        ;Memoria 1 = Mapa de donde se va a borrar
+        ;Memoria 2 = Memoria render, la memoria intermedia que despues se copia a la memoria de video
+        ;Memoria 3 = Memoria de video
+
 	local escribirABorron
         local escribirARender
         local escribirAVideo
@@ -281,9 +289,9 @@ colorPixel macro fila, columna, color, memoria
 	push bx
 	push cx
 	
-	mov cx, memoria
-	coordenadas fila, columna
-	mov ah, color
+	mov cx, memoria; Guardar a cx el numero de memoria a donde se va a escribir
+	coordenadas fila, columna; Buscar las coordenadas
+	mov ah, color; Guardar el color que se va a escribir
 	mov al, 0
         cmp cx, 1
         je escribirABorron
@@ -293,18 +301,18 @@ colorPixel macro fila, columna, color, memoria
         je escribirAVideo
 
         escribirABorron: 
-	mov erasePixel[bx], ah
+	mov erasePixel[bx], ah; Escribir en la coordenada bx el color ah en la mapa de borron
 	inc bx
-	mov erasePixel[bx], ah
+	mov erasePixel[bx], ah; Repetir para el proximo byte
         jmp terminado 
 
         escribirARender:
-	mov render[bx], al
+	mov render[bx], al; Escribir en la coordenada bx 0
 	inc bx
-	mov render[bx], ah
+	mov render[bx], ah; Escribir en el proximo byte el color ah
 	jmp terminado
 
-	escribirAVideo: mov es:[bx], ax	
+	escribirAVideo: mov es:[bx], ax; Pasar el byte entero a la memoria de video
         jmp terminado
 	
 
@@ -405,20 +413,20 @@ moveOb proc
 moveOb endp
 
 doRender proc
-         push ax
+         push ax; Guardar los registros
          push bx
          push cx
 
-         mov bx,0
-         mov cx, 2000
-
+         mov cx, 2000; Repeat for all of video memeroy
+         
+         ; Move data from render to video memory
          renderLoop:    
-	 mov al, render[bx]
+	 mov al, render[bx]; move data from bx to ax
 	 inc bx
 	 mov ah, render[bx]
 	 dec bx
-         mov es:[bx], ax
-         inc bx
+         mov es:[bx], ax; write to video memory
+         inc bx; increment memory index
          inc bx
          loop renderLoop
          
@@ -449,30 +457,30 @@ sleep endp
 
 ;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
 setErasePixels proc
-        cmp borrar, 3
+        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
 	je dontDoAnything
 
-	push ax
+	push ax; Guardar a ax
 	    
-        mov ah, white
+        mov ah, white; Guardar valores originales de white y red 
         mov al, red
      
 	cmp borrar, 1
         jnz noSetPixel
-        mov white, 0
+        mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
         mov red, 0
      
-	mushroom 1
+	mushroom 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
         
 	jmp finished
         	
 	noSetPixel:
-	mov white,1
+	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
         mov red, 1
-	mushroom 1
+	mushroom 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
         
         finished:
-        mov white, ah
+        mov white, ah; Restaurar white y red
         mov red, al
 
 	pop ax
