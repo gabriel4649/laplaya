@@ -16,14 +16,14 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
         ; variables flor
         deltax2 db 1
         deltay2 db 1
-        xpos2 db 1
-        ypos2 db 1
+        xpos2 db 30
+        ypos2 db 10
         rebotes2 db 10
         dummy2 db ?
         borrar2 db 3
         
         ; delay
-        delay dw 05ffh
+        delay dw 02ffh
         
         ;mapa de borron
 	erasePixel db 4000 dup(0)
@@ -36,21 +36,27 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	blue db 11h
 	green db 22h
 	brown db 66h
+	yellow db 0eeh
 .code
 
 ;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
-moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes
+moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh
 	push ax
 	push bx
+	push cx
+	
+	mov cl, height
+	mov ch, widthh
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
 	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
-	checkPixel deltay, ypos, 25, 3, borrar, dummy, rebotes
+	checkPixel deltay, ypos, 25, height, borrar, dummy, rebotes
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkPixel deltax, xpos, 79, 5, borrar, dummy, rebotes
+	checkPixel deltax, xpos, 79, widthh, borrar, dummy, rebotes
+	pop cx
 	pop bx
 	pop ax
 endm
@@ -112,10 +118,13 @@ mushroom macro location
 
 endm
 
+;Este macro dibuja una flor
 flower macro location
-	local supRed
-        local infRed
-        local whitePart
+	local fwhite
+        local swhite
+	local twhite
+        local yello
+	local verde
 
 	push ax
 	push bx
@@ -128,35 +137,68 @@ flower macro location
 	push dx
 	add xpos2, 1
 	
-	mov cx, 4
-	supRed:
-		colorpixel ypos2, xpos2, red, location
-		add xpos2, 1
-	loop supRed
+	mov cx, 5
+	fwhite:
+	colorpixel ypos2, xpos2, white, location
+	add xpos2, 1
+	loop fwhite
 	add ypos2, 1
 	
 	pop dx
 	mov xpos2, dl
 	push dx
-	mov cx, 6
+	mov cx, 7
 	
-	infRed:
-		colorpixel ypos2, xpos2, red, location
-		add xpos2, 1
-	loop infRed
-	add ypos2, 1
-	
+	swhite:
+	colorpixel ypos2, xpos2, white, location
+	add xpos2, 1
+	loop swhite
+
+	;---yello----
 	pop dx
+	mov xpos2, dl
+	add xpos2, 1
+	push dx
+	mov cx, 5
+	yello:
+	colorpixel ypos2, xpos2, red, location
+	add xpos2, 1
+	loop yello	
+	
+
+	add ypos2,1
+
+	pop dx
+
 	mov xpos2, dl
 	push dx
 	add xpos2, 1
-	mov cx, 4
-	whitePart:
+	mov cx, 5
+	
+	twhite:
 		colorpixel ypos2, xpos2, white, location
 		add xpos2, 1
-	loop whitePart
+	loop twhite
 	
 	pop dx
+
+
+	
+	
+	
+	add ypos2, 1
+	mov xpos2, dl
+	add xpos2,3
+	push dx
+	mov cx, 3
+	
+	verde:
+	colorpixel ypos2, xpos2, green, location
+	add ypos2, 1
+	loop verde
+	pop dx
+
+
 	mov xpos2, dl
 	mov ypos2, dh
 	
@@ -166,7 +208,6 @@ flower macro location
 	pop ax
 
 endm
-
 ;Necesita las coordenadas en dx, dh es la fila y dl es la columna(creado por Jaime 15 de octubre de 2009)
 cloud macro
 	local paintingMidCloud
@@ -464,8 +505,8 @@ main proc
 	
 	again:
 	call setErasePixels
-	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2
+	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2,6, 6
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
@@ -537,14 +578,18 @@ setErasePixels proc
 	je dontDoAnything
 
 	push ax; Guardar a ax
+	push cx
 	    
         mov ah, white; Guardar valores originales de white y red 
         mov al, red
+	mov ch, green
+	
      
 	cmp borrar, 1
         jnz noSetPixel
         mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
         mov red, 0
+	mov green, 0
      
 	mushroom 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
         flower 1
@@ -554,13 +599,16 @@ setErasePixels proc
 	noSetPixel:
 	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
         mov red, 1
+	mov green, 1
 	mushroom 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
         flower 1
         
         finished:
         mov white, ah; Restaurar white y red
         mov red, al
+	mov green, ch
 
+	pop cx
 	pop ax
         dontDoAnything:
 	ret
