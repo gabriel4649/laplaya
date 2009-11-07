@@ -3,41 +3,54 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 .stack 100h
 .data
 	marca db '>>>>'
-	deltax db 1
+	
+        ; variables hongo
+        deltax db -1
 	deltay db 1
-	xpos db 1
-	ypos db 1
-        deltax2 db 1
-        deltay2 db 1
-        xpos2 db 3
-        ypos2 db 3
-	delay dw 05ffh
-	rebotes db 10
+	xpos db 2
+	ypos db 2
+        rebotes db 10
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 3
+ 
+        ; variables flor
+        deltax2 db 1
+        deltay2 db 1
+        xpos2 db 1
+        ypos2 db 1
+        rebotes2 db 10
+        dummy2 db ?
+        borrar2 db 3
+        
+        ; delay
+        delay dw 05ffh
+        
+        ;mapa de borron
 	erasePixel db 4000 dup(0)
+        ;paso intermedio para escritura de video
         render db 4000 dup(0)
+
+        ;colores
 	red db 44h
 	white db 0ffh
 	blue db 11h
 	green db 22h
 	brown db 66h
-        flag db 0
 .code
 
 ;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
-moveOb macro deltax, deltay, xpos, ypos
+moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes
 	push ax
 	push bx
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
 	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
-	checkPixel deltay, ypos, 25, 3
+	checkPixel deltay, ypos, 25, 3, borrar, dummy, rebotes
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkPixel deltax, xpos, 79, 5
+	checkPixel deltax, xpos, 79, 5, borrar, dummy, rebotes
 	pop bx
 	pop ax
 endm
@@ -129,7 +142,7 @@ flower macro location
 	
 	infRed:
 		colorpixel ypos2, xpos2, red, location
-		add xpos, 1
+		add xpos2, 1
 	loop infRed
 	add ypos2, 1
 	
@@ -140,7 +153,7 @@ flower macro location
 	mov cx, 4
 	whitePart:
 		colorpixel ypos2, xpos2, white, location
-		add xpos, 1
+		add xpos2, 1
 	loop whitePart
 	
 	pop dx
@@ -307,7 +320,7 @@ moveD macro delta, pos
 endm
 
 ;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
-setErase macro 
+setErase macro borrar, dummy, rebotes
         ; Borrar
         ; Estado 3 = No hacer nada, flotar
         ; Estado 1 = Escribir el background
@@ -400,7 +413,7 @@ endm
 
 
 ;Macro que determina si el objeto se salio de la pantalla y le cambia la direccion para arreglarlo. (Creado por Jaime 24 de octubre de 2009)
-checkPixel macro delta, pos, border, lengthh
+checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes
 
   local outBorder
   local boundaryChecked
@@ -419,8 +432,7 @@ checkPixel macro delta, pos, border, lengthh
   
   
   outBorder:
-    changeDelta delta, pos
-    mov flag, 1
+    changeDelta delta, pos, borrar, dummy, rebotes
     
   boundaryChecked:
   pop ax
@@ -428,10 +440,10 @@ checkPixel macro delta, pos, border, lengthh
 endm
 
 ;Macro que cambia direccion a la que se mueve el objeto. (Creado por Jaime 24 de octubre de 2009)
-changeDelta macro delta, pos
+changeDelta macro delta, pos, borrar, dummy, rebotes
 	neg delta
 	moveD delta, pos
-	setErase
+	setErase borrar, dummy, rebotes
 endm
 
 
@@ -443,18 +455,22 @@ main proc
 	mov es, ax
 	
 	mov cx, 1000
+
 	mov al, rebotes
 	mov dummy, al
+
+        mov al, rebotes2
+        mov dummy2, al
 	
 	again:
 	call setErasePixels
-	moveOb deltax, deltay, xpos, ypos ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2
+	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
         mushroom 2; escribir hongo en "render"
-        ;flower 2; escribir flower en "render"
+        flower 2; escribir flower en "render"
                
         call doRender; copiar render a memoria de video
 	
@@ -531,7 +547,7 @@ setErasePixels proc
         mov red, 0
      
 	mushroom 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
-        ;flower 1
+        flower 1
         
 	jmp finished
         	
@@ -539,7 +555,7 @@ setErasePixels proc
 	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
         mov red, 1
 	mushroom 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
-        ;flower 1
+        flower 1
         
         finished:
         mov white, ah; Restaurar white y red
