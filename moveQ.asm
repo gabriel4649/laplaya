@@ -7,6 +7,10 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 1
 	ypos db 1
+        deltax2 db 1
+        deltay2 db 1
+        xpos2 db 3
+        ypos2 db 3
 	delay dw 05ffh
 	rebotes db 10
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
@@ -20,6 +24,23 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	brown db 66h
         flag db 0
 .code
+
+;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
+moveOb macro deltax, deltay, xpos, ypos
+	push ax
+	push bx
+	moveD deltay, ypos
+	
+	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
+	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
+	checkPixel deltay, ypos, 25, 3
+	
+	moveD deltax, xpos
+	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
+	checkPixel deltax, xpos, 79, 5
+	pop bx
+	pop ax
+endm
 
 ;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
 
@@ -70,6 +91,61 @@ mushroom macro location
 	pop dx
 	mov xpos, dl
 	mov ypos, dh
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+
+endm
+
+flower macro location
+	local supRed
+        local infRed
+        local whitePart
+
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	mov bx, 0
+	mov dh, ypos2
+	mov dl, xpos2
+	push dx
+	add xpos2, 1
+	
+	mov cx, 4
+	supRed:
+		colorpixel ypos2, xpos2, red, location
+		add xpos2, 1
+	loop supRed
+	add ypos2, 1
+	
+	pop dx
+	mov xpos2, dl
+	push dx
+	mov cx, 6
+	
+	infRed:
+		colorpixel ypos2, xpos2, red, location
+		add xpos, 1
+	loop infRed
+	add ypos2, 1
+	
+	pop dx
+	mov xpos2, dl
+	push dx
+	add xpos2, 1
+	mov cx, 4
+	whitePart:
+		colorpixel ypos2, xpos2, white, location
+		add xpos, 1
+	loop whitePart
+	
+	pop dx
+	mov xpos2, dl
+	mov ypos2, dh
 	
 	pop dx
 	pop cx
@@ -372,11 +448,13 @@ main proc
 	
 	again:
 	call setErasePixels
-	call moveOb ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+	moveOb deltax, deltay, xpos, ypos ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+        moveOb deltax2, deltay2, xpos2, ypos2
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
         mushroom 2; escribir hongo en "render"
+        ;flower 2; escribir flower en "render"
                
         call doRender; copiar render a memoria de video
 	
@@ -393,24 +471,6 @@ main proc
 	mov ax, 4c00h
 	int 21h
 main endp
-
-;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
-moveOb proc
-	push ax
-	push bx
-	moveD deltay, ypos
-	
-	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
-	checkPixel deltay, ypos, 25, 3
-	
-	moveD deltax, xpos
-	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkPixel deltax, xpos, 79, 5
-	pop bx
-	pop ax
-	ret
-moveOb endp
 
 doRender proc
          push ax; Guardar los registros
@@ -471,6 +531,7 @@ setErasePixels proc
         mov red, 0
      
 	mushroom 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
+        ;flower 1
         
 	jmp finished
         	
@@ -478,6 +539,7 @@ setErasePixels proc
 	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
         mov red, 1
 	mushroom 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
+        ;flower 1
         
         finished:
         mov white, ah; Restaurar white y red
