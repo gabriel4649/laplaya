@@ -161,94 +161,111 @@ mushroom macro location
 
 endm
 
+                                                                     
+                                                                     
+                                                                     
+                                             
 ;Este macro dibuja una flor
 flower macro location
-	local fwhite
-        local swhite
-	local twhite
-        local yello
-	local verde
+local fwhite
+local swhite
+local twhite
+local yello
+local hoja
+local verde
 
-	push ax
-	push bx
-	push cx
-	push dx
-	
-	mov bx, 0
-	mov dh, ypos2
-	mov dl, xpos2
-	push dx
-	add xpos2, 1
-	
-	mov cx, 5
-	fwhite:
-	colorpixel ypos2, xpos2, white, location
-	add xpos2, 1
-	loop fwhite
-	add ypos2, 1
-	
-	pop dx
-	mov xpos2, dl
-	push dx
-	mov cx, 7
-	
-	swhite:
-	colorpixel ypos2, xpos2, white, location
-	add xpos2, 1
-	loop swhite
+push ax
+push bx
+push cx
+push dx
 
-	;---yello----
-	pop dx
-	mov xpos2, dl
-	add xpos2, 1
-	push dx
-	mov cx, 5
-	yello:
-	colorpixel ypos2, xpos2, red, location
-	add xpos2, 1
-	loop yello	
-	
+mov bx, 0
+mov dh, ypos2
+mov dl, xpos2
+push dx
+add xpos2, 1
 
-	add ypos2,1
+mov cx, 3
+fwhite:
+colorpixel ypos2, xpos2, white, location
+add xpos2, 1
+loop fwhite
+add ypos2, 1
 
-	pop dx
+pop dx
+mov xpos2, dl
+push dx
+mov cx, 5
 
-	mov xpos2, dl
-	push dx
-	add xpos2, 1
-	mov cx, 5
-	
-	twhite:
-		colorpixel ypos2, xpos2, white, location
-		add xpos2, 1
-	loop twhite
-	
-	pop dx
+swhite:
+colorpixel ypos2, xpos2, white, location
+add xpos2, 1
+loop swhite
+
+;---yello---
+pop dx
+mov xpos2, dl
+add xpos2, 1
+push dx
+mov cx, 3
+yello:
+colorpixel ypos2, xpos2, red, location
+add xpos2, 1
+loop yello
 
 
-	
-	
-	
-	add ypos2, 1
-	mov xpos2, dl
-	add xpos2,3
-	push dx
-	mov cx, 3
-	
-	verde:
-	colorpixel ypos2, xpos2, green, location
-	add ypos2, 1
-	loop verde
-	pop dx
+add ypos2,1
+
+pop dx
+
+mov xpos2, dl
+push dx
+add xpos2, 1
+mov cx, 3
+
+twhite:
+colorpixel ypos2, xpos2, white, location
+add xpos2, 1
+loop twhite
+
+pop dx
 
 
-	mov xpos2, dl
-	mov ypos2, dh
-	
-	pop dx
-	pop cx
-	pop bx
-	pop ax
+
+
+
+add ypos2, 1
+mov xpos2, dl
+;add xpos2,1
+push dx
+mov cx, 3
+
+hoja:
+colorpixel ypos2, xpos2, green, location
+add xpos2, 2;
+loop hoja
+pop dx
+
+add ypos2, 1
+mov xpos2, dl
+add xpos2,1
+push dx
+mov cx, 3
+
+verde:
+colorpixel ypos2, xpos2, green, location
+add xpos2, 1
+loop verde
+pop dx
+
+
+mov xpos2, dl
+mov ypos2, dh
+
+pop dx
+pop cx
+pop bx
+pop ax
 
 endm
 ;Necesita las coordenadas en dx, dh es la fila y dl es la columna(creado por Jaime 15 de octubre de 2009)
@@ -550,7 +567,7 @@ main proc
 	setErasePixels borrar, mushroom
         setErasePixels borrar2, flower
 	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 6, 6
+        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
