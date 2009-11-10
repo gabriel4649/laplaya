@@ -29,6 +29,11 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	erasePixel db 4000 dup(0)
         ;paso intermedio para escritura de video
         render db 4000 dup(0)
+	;mapa del segundo background
+	bowserCastle db 4000 dup(0)
+
+	;Selecciona cual background va a dibujar
+	backgroundSelect db 0
 
         ;colores
 	red db 44h
@@ -450,6 +455,7 @@ setErase macro borrar, dummy, rebotes
         mov al, rebotes; Si es cero restuarar dummy y setear borrar al estado 1
         mov dummy, al
 	mov borrar,1
+        xor backgroundSelect,1; Alternar bakgroundSelect
         
         jmp noSetErase; Salir del macro
 	
