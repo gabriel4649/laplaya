@@ -18,7 +18,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
         deltay2 db 1
         xpos2 db 30
         ypos2 db 10
-        rebotes2 db 10
+        rebotes2 db 2
         dummy2 db ?
         borrar2 db 3
         
@@ -60,6 +60,49 @@ moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh
 	pop bx
 	pop ax
 endm
+
+;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
+setErasePixels macro borrar, muneco
+        local dontDoAnything, noSetPixel, finished
+        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
+	je dontDoAnything
+
+	push ax; Guardar a ax
+	push cx
+	    
+        mov ah, white; Guardar valores originales de white y red 
+        mov al, red
+	mov ch, green
+	
+     
+	cmp borrar, 1
+        jnz noSetPixel
+        mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
+        mov red, 0
+	mov green, 0
+     
+	muneco 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
+        
+	jmp finished
+        	
+	noSetPixel:
+	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
+        mov red, 1
+	mov green, 1
+	muneco 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
+        
+        finished:
+        mov white, ah; Restaurar white y red
+        mov red, al
+	mov green, ch
+
+	pop cx
+	pop ax
+        dontDoAnything:
+
+endm
+
+
 
 ;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
 
@@ -504,9 +547,10 @@ main proc
         mov dummy2, al
 	
 	again:
-	call setErasePixels
+	setErasePixels borrar, mushroom
+        setErasePixels borrar2, flower
 	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2,6, 6
+        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 6, 6
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
@@ -571,49 +615,6 @@ sleep proc
 sleep endp
 
 ;Verifica si el objeto se salio de la pantalla y si esto ocurre, cambia la direccion a la que se va a mover
-
-;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
-setErasePixels proc
-        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
-	je dontDoAnything
-
-	push ax; Guardar a ax
-	push cx
-	    
-        mov ah, white; Guardar valores originales de white y red 
-        mov al, red
-	mov ch, green
-	
-     
-	cmp borrar, 1
-        jnz noSetPixel
-        mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
-        mov red, 0
-	mov green, 0
-     
-	mushroom 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
-        flower 1
-        
-	jmp finished
-        	
-	noSetPixel:
-	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
-        mov red, 1
-	mov green, 1
-	mushroom 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
-        flower 1
-        
-        finished:
-        mov white, ah; Restaurar white y red
-        mov red, al
-	mov green, ch
-
-	pop cx
-	pop ax
-        dontDoAnything:
-	ret
-
-setErasePixels endp
 
 ;Borra la parte de la pantalla que se debe borrar luego de que el objeto rebota varias veces en la pantalla (Creado por Jaime el 14 de octubre de 2009)
 eraser proc
