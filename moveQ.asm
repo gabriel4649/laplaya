@@ -40,9 +40,6 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	;variable intermedia para verificar que no se copie donde se borro
 	onlyErase db 4000 dup(0)
 
-	
-	
-
         ;colores
 	red db 44h
 	white db 0ffh
@@ -52,6 +49,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	yellow db 0eeh
         black db 00h
         gray db 088h
+        magenta db 101b
 
 .code
 
@@ -899,10 +897,11 @@ eraser proc
 	checkErase:
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
 		jnz CheckifDrawBack2 ;If el pixel no es cero, vuelve a iterar
-		mov ax, 0h
-		mov render[bx], al
-		inc bx
+                mov ah, magenta
+                mov al, magenta
 		mov render[bx], ah
+		inc bx
+		mov render[bx], al
 		dec bx
 		jmp doNothing
 		
