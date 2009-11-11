@@ -35,7 +35,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
         ;paso intermedio para escritura de video
         render db 4000 dup(0)
 	;mapa del segundo background
-	bowserCastle db 4000 dup(22h)
+	bowserCastle db 4000 dup(0)
 	
 	;variable intermedia para verificar que no se copie donde se borro
 	onlyErase db 4000 dup(0)
@@ -50,7 +50,223 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	green db 22h
 	brown db 66h
 	yellow db 0eeh
+        black db 00h
+        gray db 088h
+
 .code
+
+;_________________________________________________________________________
+;Dibuja los bloques gris (editado por Daphne 23 de Octubre) 
+block macro
+local paintingBlock
+local painting
+
+push ax
+push cx
+push dx
+
+mov cx, 10 ;((((habia un 2, y este se agranda verticalmente hacia abajo por filas))))
+paintingBlock:
+push cx
+mov cx, 4 ;(((se agranda horizontalmente hacia la derecha columna))
+painting:
+colorPixel dh, dl, gray, 4
+inc dl
+loop painting
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintingBlock
+
+pop dx
+pop cx
+pop ax
+endm
+
+;____________((((((((KOOPA)))))))))))))___________________________________
+;(((((((((Dibuja a koopa (editado por Daphne 23 de Octubre de 2009))))))))
+
+koopa macro
+local paintingKoopa
+local paintingK
+
+push ax
+push cx
+push dx
+
+mov cx, 1
+paintingKoopa:
+push cx
+mov cx, 1
+paintingK:
+colorPixel dh, dl, green, 4
+inc dl
+loop paintingK
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintingKoopa
+
+pop dx
+pop cx
+pop ax
+endm
+
+;_______(((((((((((((((((((Blanco)))))))))))))))_______________________________
+blanco macro
+local paintBlanco
+local paintB
+
+push ax
+push cx
+push dx
+
+mov cx, 1
+paintBlanco:
+push cx
+mov cx, 1
+paintB:
+colorPixel dh, dl, white, 4
+inc dl
+loop paintB
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintBlanco
+
+pop dx
+pop cx
+pop ax
+endm
+
+;________________((((((((((((crema)))))))))))))))))))_____________
+crema macro
+local paintCrema
+local paintC
+
+push ax
+push cx
+push dx
+
+mov cx, 1;((((((((((((((Cambie el 2))))))))))))))))
+paintCrema:
+push cx
+mov cx, 1;(((((((((((((Cambie el 4))))))))))))))))
+paintC:
+colorPixel dh, dl, yellow, 4
+inc dl
+loop paintC
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintCrema
+
+pop dx
+pop cx
+pop ax
+endm
+
+;______________red_______-
+rojo macro
+local paintRed
+local paintR
+
+push ax
+push cx
+push dx
+
+mov cx, 1;
+paintRed:
+push cx
+mov cx, 1;
+paintR:
+colorPixel dh, dl, red, 4
+inc dl
+loop paintR
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintRed
+
+pop dx
+pop cx
+pop ax
+endm
+
+;_______Macro Peach_____
+peach macro
+local paintPeach
+local paintP
+
+push ax
+push cx
+push dx
+
+mov cx, 1
+paintPeach:
+push cx
+mov cx, 1
+paintP:
+colorPixel dh, dl, brown, 4
+inc dl
+loop paintP
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintPeach
+
+pop dx
+pop cx
+pop ax
+endm
+
+;_________Dibuja el bloque________
+bloque macro
+local paintBloq
+local paintB
+
+push ax
+push cx
+push dx
+
+mov cx, 3
+paintBloq:
+push cx
+mov cx, 5
+paintB:
+colorPixel dh, dl, brown, 4
+inc dl
+loop paintB
+mov al, dh
+pop cx
+pop dx
+push dx
+inc al
+mov dh, al
+loop paintBloq
+
+pop dx
+pop cx
+pop ax
+endm
 
 ;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
 moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh, bgType
@@ -522,8 +738,8 @@ colorPixel macro fila, columna, color, memoria
         je escribirARender
         cmp cx, 3
         je escribirAVideo
-		cmp cx, 4
-		je escribirABackground2
+	cmp cx, 4
+	je escribirABackground2
 		
 
         escribirABorron: 
@@ -599,6 +815,8 @@ main proc
 
         mov al, rebotes2
         mov dummy2, al
+      
+        call background2
 	
 	again:
 	setErasePixels borrar, mushroom, backgroundSelect1
@@ -853,16 +1071,573 @@ ret
 writeToVideo endp
 
 writeToBack2 proc
-	mov bowserCastle, al
-	mov bowserCastle, ah
+	mov bowserCastle[bx], al
+        inc bx
+	mov bowserCastle[bx], ah
 	ret
 writeToBack2 endp
 
+background2 proc
+push ax
+push bx
+push cx
+push dx
+
+mov bx, 0
+mov cx, 160
+paintingGris:
+mov ah, gray
+mov al, 0
+mov bowserCastle[bx], ah
+inc bx
+inc bx
+loop paintingGris
+
+mov cx, 1280
+paintingNegro:
+mov ah, black
+mov al, 0
+mov bowserCastle[bx], ah
+inc bx
+inc bx
+loop paintingNegro
+
+mov cx, 560
+paintingLava:
+mov ah, red
+mov al, 0
+mov bowserCastle[bx], ah
+inc bx
+inc bx
+loop paintingLava
 
 
 
-		
 
+;___________(((((Bloques Gris))))))))_____________
+mov dh, 0 ;fila
+mov dl, 0 ;columna
+block
+
+mov dh, 16 ;fila
+mov dl, 0 ; column
+block
+
+mov dh, 0 ;fila
+mov dl, 76 ; columna ((en 80 no me la dibuja pq el bloque es de 4))))
+block
+
+mov dh, 16 ;fila
+mov dl, 76 ; columna
+block
+
+;____________(((((((((koopa)))))))))_______________
+
+mov dh, 6 
+mov dl, 53 
+Koopa
+mov dh, 6 
+mov dl, 54 
+Koopa
+mov dh, 7 
+mov dl, 52 
+Koopa
+mov dh, 7 
+mov dl, 53
+Koopa
+mov dh, 7 
+mov dl, 55 
+Koopa
+mov dh, 7
+mov dl, 56
+Koopa
+mov dh, 7
+mov dl, 57
+Koopa
+mov dh, 8 
+mov dl, 52
+Koopa
+mov dh, 8 
+mov dl, 53
+Koopa
+mov dh, 8
+mov dl, 54
+Koopa
+mov dh, 8
+mov dl, 55
+Koopa
+mov dh, 8
+mov dl, 56
+Koopa
+mov dh, 8 
+mov dl, 57 
+Koopa
+mov dh, 9 
+mov dl, 52 
+Koopa
+mov dh, 9 
+mov dl, 53 
+Koopa
+mov dh, 9 
+mov dl, 54 
+Koopa
+mov dh, 9 
+mov dl, 55 
+Koopa
+mov dh, 9 
+mov dl, 56 
+koopa
+mov dh, 10 
+mov dl, 52 
+koopa
+mov dh, 10 
+mov dl, 53 
+koopa
+mov dh, 11 
+mov dl, 50 
+koopa
+mov dh, 11 
+mov dl, 51 
+koopa
+mov dh, 11 ;fila
+mov dl, 53 ; columna
+koopa
+mov dh, 12 ;fila
+mov dl, 49 ; columna
+koopa
+mov dh, 12 ;fila
+mov dl, 50 ; columna
+koopa
+mov dh, 12 ;fila
+mov dl, 51 ; columna
+koopa
+mov dh, 12 ;fila
+mov dl, 53 ; columna
+koopa
+mov dh, 13 ;fila
+mov dl, 48 ; columna
+koopa
+mov dh, 13 ;fila
+mov dl, 49 ; columna
+koopa
+mov dh, 13 ;fila
+mov dl, 50 ; columna
+koopa
+mov dh, 14 ;fila
+mov dl, 47 ; columna
+koopa
+mov dh, 14 ;fila
+mov dl, 48 ; columna
+koopa
+mov dh, 14 ;fila
+mov dl, 49 ; columna
+koopa
+mov dh, 14 ;fila
+mov dl, 51 ; columna
+koopa
+mov dh, 14 ;fila
+mov dl, 52 ; columna
+koopa
+mov dh, 15 ;fila
+mov dl, 48 ; columna
+koopa
+mov dh, 15 ;fila
+mov dl, 50 ; columna
+koopa
+mov dh, 15 ;fila
+mov dl, 51 ; columna
+koopa
+mov dh, 15 ;fila
+mov dl, 52 ; columna
+koopa
+mov dh, 16 ;fila
+mov dl, 51 ; columna
+koopa
+
+
+;_______((((((((((puntitos blancos)))))))))))_________
+mov dh, 6 
+mov dl, 52 
+blanco
+mov dh, 7
+mov dl, 54 
+blanco
+mov dh, 10 
+mov dl, 51
+blanco
+mov dh, 11  
+mov dl, 52
+blanco
+mov dh, 12 
+mov dl, 52
+blanco
+mov dh, 13 
+mov dl, 51 
+blanco
+mov dh, 14  
+mov dl, 50 
+blanco
+mov dh, 15  
+mov dl, 49 
+blanco
+
+;____________(((((((((((((puntitos crema))))))))))))))____________
+
+mov dh, 10  
+mov dl, 54
+crema
+mov dh, 10
+mov dl, 55
+crema
+mov dh, 13 
+mov dl, 52
+crema
+mov dh, 13 
+mov dl, 53
+crema
+mov dh, 13  
+mov dl, 54
+crema
+mov dh, 14  
+mov dl, 53
+crema
+mov dh, 14   
+mov dl, 54
+crema
+mov dh, 16  
+mov dl, 49
+crema
+mov dh, 16  
+mov dl, 50
+crema
+mov dh, 16 
+mov dl, 52
+crema
+mov dh, 16 
+mov dl, 53
+crema
+mov dh, 16 
+mov dl, 54
+crema
+mov dh, 17 
+mov dl, 48
+crema
+mov dh, 17 
+mov dl, 49
+crema
+mov dh, 17  
+mov dl, 50
+crema
+mov dh, 17  
+mov dl, 51
+crema
+
+
+
+;___MARIO____(parece un lego)
+mov dh,5  
+mov dl,15 
+blanco
+mov dh,5  
+mov dl,16 
+blanco
+mov dh,5  
+mov dl,17 
+blanco
+mov dh,5  
+mov dl,18
+blanco
+mov dh,5  
+mov dl,19 
+blanco
+mov dh,6 
+mov dl,14 
+blanco
+mov dh,6 
+mov dl,15 
+blanco
+mov dh,6 
+mov dl,16 
+blanco
+mov dh,6 
+mov dl,17 
+blanco
+mov dh,6 
+mov dl,18 
+blanco
+mov dh,6 
+mov dl,19 
+blanco
+mov dh,6 
+mov dl,20
+blanco
+mov dh, 10
+mov dl, 15
+blanco
+mov dh, 10
+mov dl, 16
+blanco
+mov dh, 10
+mov dl, 18
+blanco
+mov dh, 10
+mov dl, 19
+blanco
+mov dh, 11
+mov dl, 15
+blanco
+mov dh, 11
+mov dl, 16
+blanco
+mov dh, 11
+mov dl, 17
+blanco
+mov dh, 11
+mov dl, 18
+blanco
+mov dh, 11
+mov dl, 19
+blanco
+mov dh, 12
+mov dl, 15
+blanco
+mov dh, 12
+mov dl, 16
+blanco
+mov dh, 12
+mov dl, 17
+blanco
+mov dh, 12
+mov dl, 18
+blanco
+mov dh, 12
+mov dl, 19
+blanco
+mov dh, 13
+mov dl, 15
+blanco
+mov dh, 13
+mov dl, 16
+blanco
+mov dh, 13
+mov dl, 17
+blanco
+mov dh, 13
+mov dl, 18
+blanco
+mov dh, 13
+mov dl, 19
+blanco
+mov dh, 14
+mov dl, 15
+blanco
+mov dh, 14
+mov dl, 16
+blanco
+mov dh, 14
+mov dl, 18
+blanco
+mov dh, 14
+mov dl, 19
+blanco
+
+
+mov dh, 6
+mov dl, 17
+rojo
+mov dh, 10
+mov dl, 14
+rojo
+mov dh, 10
+mov dl, 17
+rojo
+mov dh, 10
+mov dl, 20
+rojo
+mov dh, 11
+mov dl, 14
+rojo
+mov dh, 11
+mov dl, 20
+rojo
+mov dh, 15
+mov dl, 15
+rojo
+mov dh, 15
+mov dl, 16
+rojo
+mov dh, 15
+mov dl, 18
+rojo
+mov dh, 15
+mov dl, 19
+rojo
+
+mov dh, 7
+mov dl, 15
+peach
+mov dh, 7
+mov dl, 17
+peach
+mov dh, 7
+mov dl, 19
+peach
+mov dh, 8
+mov dl, 15
+peach
+mov dh, 8
+mov dl, 16
+peach
+mov dh, 8
+mov dl, 17
+peach
+mov dh, 8
+mov dl, 18
+peach
+mov dh, 8
+mov dl, 19
+peach
+mov dh, 9
+mov dl, 17
+peach
+mov dh, 12
+mov dl, 14
+peach
+mov dh, 12
+mov dl, 20
+peach
+mov dh, 16
+mov dl, 4
+peach
+mov dh, 16
+mov dl, 5
+peach
+mov dh, 16
+mov dl, 6
+peach
+mov dh, 16
+mov dl, 7
+peach
+mov dh, 16
+mov dl, 8
+peach
+mov dh, 16
+mov dl, 9
+peach
+mov dh, 16
+mov dl, 10
+peach
+mov dh, 16
+mov dl, 11
+peach
+mov dh, 16
+mov dl, 12
+peach
+mov dh, 16
+mov dl, 13
+peach
+mov dh, 16
+mov dl, 14
+peach
+mov dh, 16
+mov dl, 15
+peach
+mov dh, 16
+mov dl, 16
+peach
+mov dh, 16
+mov dl, 17
+peach
+mov dh, 16
+mov dl, 18
+peach
+mov dh, 16
+mov dl, 19
+peach
+mov dh, 16
+mov dl, 20
+peach
+mov dh, 16
+mov dl, 21
+peach
+mov dh, 16
+mov dl, 22
+peach
+mov dh, 16
+mov dl, 23
+peach
+mov dh, 16
+mov dl, 24
+peach
+mov dh, 16
+mov dl, 25
+peach
+
+
+
+;flor
+mov dh, 5
+mov dl, 33
+blanco
+mov dh, 5  
+mov dl, 34
+blanco
+mov dh, 5  
+mov dl, 35
+blanco 
+mov dh, 6  
+mov dl, 32
+blanco
+mov dh, 6  
+mov dl, 36
+blanco
+mov dh, 7  
+mov dl, 33
+blanco
+mov dh, 7
+mov dl, 34
+blanco
+mov dh, 7
+mov dl, 35
+blanco
+mov dh, 6  
+mov dl, 33
+crema
+mov dh, 6
+mov dl, 34
+crema
+mov dh, 6
+mov dl, 35
+crema
+mov dh, 8
+mov dl, 32
+koopa
+mov dh, 8
+mov dl, 34
+koopa
+mov dh, 8
+mov dl, 36
+koopa
+mov dh, 9
+mov dl, 33
+koopa
+mov dh, 9
+mov dl, 34
+koopa
+mov dh, 9
+mov dl, 35
+koopa
+
+mov dh, 10
+mov dl, 32
+bloque
+
+pop dx
+pop cx
+pop bx
+pop ax
+ret
+background2 endp		
 
 end main
 	
