@@ -9,31 +9,39 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	deltay db 1
 	xpos db 2
 	ypos db 2
-        rebotes db 10
+        rebotes db 5
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 3
+        ;Selecciona cual background va a dibujar el hongo
+	backgroundSelect1 db 0
+	
  
         ; variables flor
         deltax2 db 1
         deltay2 db 1
         xpos2 db 30
         ypos2 db 10
-        rebotes2 db 2
+        rebotes2 db 5
         dummy2 db ?
         borrar2 db 3
+        ;Selecciona cual background va a dibujar la flor
+	backgroundSelect2 db 0
         
         ; delay
-        delay dw 02ffh
+        delay dw 0009h
         
         ;mapa de borron
 	erasePixel db 4000 dup(0)
         ;paso intermedio para escritura de video
         render db 4000 dup(0)
 	;mapa del segundo background
-	bowserCastle db 4000 dup(0)
+	bowserCastle db 4000 dup(22h)
+	
+	;variable intermedia para verificar que no se copie donde se borro
+	onlyErase db 4000 dup(0)
 
-	;Selecciona cual background va a dibujar
-	backgroundSelect db 0
+	
+	
 
         ;colores
 	red db 44h
@@ -45,7 +53,7 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 .code
 
 ;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
-moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh
+moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh, bgType
 	push ax
 	push bx
 	push cx
@@ -56,19 +64,19 @@ moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
 	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
-	checkPixel deltay, ypos, 25, height, borrar, dummy, rebotes
+	checkPixel deltay, ypos, 25, height, borrar, dummy, rebotes, bgType
 	
 	moveD deltax, xpos
 	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
-	checkPixel deltax, xpos, 79, widthh, borrar, dummy, rebotes
+	checkPixel deltax, xpos, 79, widthh, borrar, dummy, rebotes, bgType
 	pop cx
 	pop bx
 	pop ax
 endm
 
 ;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
-setErasePixels macro borrar, muneco
-        local dontDoAnything, noSetPixel, finished
+setErasePixels macro borrar, muneco, bgType
+        local dontDoAnything, noSetPixel, finished, writeBack2
         cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
 	je dontDoAnything
 
@@ -82,6 +90,8 @@ setErasePixels macro borrar, muneco
      
 	cmp borrar, 1
         jnz noSetPixel
+        cmp bgType, 1
+	je writeBack2
         mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
         mov red, 0
 	mov green, 0
@@ -91,10 +101,19 @@ setErasePixels macro borrar, muneco
 	jmp finished
         	
 	noSetPixel:
+	
+	
 	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
         mov red, 1
 	mov green, 1
 	muneco 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
+	jmp finished
+	
+	writeBack2:
+	mov white, 2
+	mov red, 2
+	mov green, 2
+	muneco 1
         
         finished:
         mov white, ah; Restaurar white y red
@@ -426,7 +445,7 @@ moveD macro delta, pos
 endm
 
 ;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
-setErase macro borrar, dummy, rebotes
+setErase macro borrar, dummy, rebotes, bgType
         ; Borrar
         ; Estado 3 = No hacer nada, flotar
         ; Estado 1 = Escribir el background
@@ -439,8 +458,10 @@ setErase macro borrar, dummy, rebotes
 
         cmp borrar, 3; En el estado 3 no hacer nada
         jnz normal; Verificar si borrar esta en el estado 0 o 1
+		
         sub dummy,1; Disminuir dummy
-        jnz noSetErase; Si no es cero salir del macro
+        jnz noSetErase; Si dummy no es cero salir del macro
+		
         mov al, rebotes; Si se llega a cero pasar rebotes a al para restaurar dummy
         mov dummy, al; Restaurar dummy al numero de rebotes
         add dummy, 1; Añadirle 1 a dummy porque se le va a restar uno ahora aunque no halla chocado
@@ -450,18 +471,21 @@ setErase macro borrar, dummy, rebotes
 
         cmp borrar, 1; Verificar si esta en el estado 1
         je writing; Escribir el background
+		
 	sub dummy, 1; Disminuir dummy
 	jnz noSetErase; Si no es cero salir del macro
+	
         mov al, rebotes; Si es cero restuarar dummy y setear borrar al estado 1
         mov dummy, al
 	mov borrar,1
-        xor backgroundSelect,1; Alternar bakgroundSelect
+        xor bgType,01h; Alternar bakgroundSelect
         
         jmp noSetErase; Salir del macro
 	
 	writing: 
         sub dummy, 1; Disminuir dummy
         jnz noSetErase; Salir del macro si no es cero
+		
         mov al, rebotes; ; Si es cero restaurar dummy y pasar al estado 3
         mov dummy, al
         mov borrar, 3     
@@ -469,18 +493,21 @@ setErase macro borrar, dummy, rebotes
 	noSetErase:
         pop ax
 endm
-cmp dummy,al
+
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
 colorPixel macro fila, columna, color, memoria
         ;Memoria 1 = Mapa de donde se va a borrar
         ;Memoria 2 = Memoria render, la memoria intermedia que despues se copia a la memoria de video
         ;Memoria 3 = Memoria de video
+		;Memoria 4 = Memoria del segundo background
 
 	local escribirABorron
         local escribirARender
         local escribirAVideo
         local terminado
-
+		local escribirABackground2
+		local erasePix
+		
 	push ax
 	push bx
 	push cx
@@ -495,21 +522,25 @@ colorPixel macro fila, columna, color, memoria
         je escribirARender
         cmp cx, 3
         je escribirAVideo
+		cmp cx, 4
+		je escribirABackground2
+		
 
         escribirABorron: 
-	mov erasePixel[bx], ah; Escribir en la coordenada bx el color ah en la mapa de borron
-	inc bx
-	mov erasePixel[bx], ah; Repetir para el proximo byte
+		call writeToBorron
         jmp terminado 
 
         escribirARender:
-	mov render[bx], al; Escribir en la coordenada bx 0
-	inc bx
-	mov render[bx], ah; Escribir en el proximo byte el color ah
-	jmp terminado
+		call writeToRender
+		jmp terminado
 
-	escribirAVideo: mov es:[bx], ax; Pasar el byte entero a la memoria de video
+	escribirAVideo: 
+		call writeToVideo
         jmp terminado
+		
+		escribirABackground2:
+		call writeToBack2
+		jmp terminado
 	
 
         terminado:
@@ -520,7 +551,7 @@ endm
 
 
 ;Macro que determina si el objeto se salio de la pantalla y le cambia la direccion para arreglarlo. (Creado por Jaime 24 de octubre de 2009)
-checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes
+checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes, bgType
 
   local outBorder
   local boundaryChecked
@@ -539,7 +570,7 @@ checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes
   
   
   outBorder:
-    changeDelta delta, pos, borrar, dummy, rebotes
+    changeDelta delta, pos, borrar, dummy, rebotes, bgType
     
   boundaryChecked:
   pop ax
@@ -547,10 +578,10 @@ checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes
 endm
 
 ;Macro que cambia direccion a la que se mueve el objeto. (Creado por Jaime 24 de octubre de 2009)
-changeDelta macro delta, pos, borrar, dummy, rebotes
+changeDelta macro delta, pos, borrar, dummy, rebotes, bgType
 	neg delta
 	moveD delta, pos
-	setErase borrar, dummy, rebotes
+	setErase borrar, dummy, rebotes, bgType
 endm
 
 
@@ -570,10 +601,10 @@ main proc
         mov dummy2, al
 	
 	again:
-	setErasePixels borrar, mushroom
-        setErasePixels borrar2, flower
-	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4
+	setErasePixels borrar, mushroom, backgroundSelect1
+        setErasePixels borrar2, flower, backgroundSelect2
+	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5, backgroundSelect1 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
+        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4, backgroundSelect2
         
         call background; Dibjar background en "render"
         call eraser; borrar lo que alla que borrar
@@ -627,7 +658,7 @@ sleep proc
 	mov cx, delay
 	sleepingag:
 		push cx
-		mov cx, 00ffh
+		mov cx, 0afffh
 		sleeping:
 		loop sleeping
 		pop cx
@@ -649,12 +680,24 @@ eraser proc
 	mov bx, 0
 	checkErase:
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
-		jnz doNothing ;If el pixel no es cero, vuelve a iterar
+		jnz CheckifDrawBack2 ;If el pixel no es cero, vuelve a iterar
 		mov ax, 0h
 		mov render[bx], al
 		inc bx
 		mov render[bx], ah
 		dec bx
+		jmp doNothing
+		
+		CheckifDrawBack2:
+		cmp erasePixel[bx], 2
+		jnz doNothing
+		mov al, bowserCastle[bx]
+		mov render[bx], al
+		inc bx
+		mov al, bowserCastle[bx]
+		mov render[bx], al
+		dec bx
+		
 		doNothing:
 		inc bx
 		inc bx
@@ -775,6 +818,51 @@ background proc
 	pop ax
 	ret
 background endp
+
+writeToBorron proc
+
+	cmp ah, 1 ;Si es uno se borra, por lo tanto se debe cambiar el pixel independientemente del background que se utilice
+	je erasePix		
+		
+	cmp erasePixel[bx], 1 ;Si el pixel en el que se va a escribir es uno, es que este espacio ya se borro y se le puede escribir encima con cualquiera de los dos backgrounds
+	je erasePix
+	jmp endWriteBorr
+		
+	erasePix:
+	mov erasePixel[bx], ah; Escribir en la coordenada bx el color ah en la mapa de borron
+	inc bx
+	mov erasePixel[bx], ah; Repetir para el proximo byte
+    endWriteBorr:
+ret
+writeToBorron endp
+
+
+writeToRender proc
+
+	mov render[bx], al; Escribir en la coordenada bx 0
+	inc bx
+	mov render[bx], ah; Escribir en el proximo byte el color ah
+
+ret
+writeToRender endp
+
+
+writeToVideo proc
+	escribirAVideo: mov es:[bx], ax; Pasar el byte entero a la memoria de video
+ret
+writeToVideo endp
+
+writeToBack2 proc
+	mov bowserCastle, al
+	mov bowserCastle, ah
+	ret
+writeToBack2 endp
+
+
+
+
+		
+
 
 end main
 	
