@@ -5,11 +5,11 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	marca db '>>>>'
 	
         ; variables hongo
-        deltax db -1
+        deltax db -4
 	deltay db 1
-	xpos db 2
+	xpos db 40
 	ypos db 2
-        rebotes db 5
+        rebotes db 30
 	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
 	borrar db 3
         ;Selecciona cual background va a dibujar el hongo
@@ -17,18 +17,18 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	
  
         ; variables flor
-        deltax2 db 1
+        deltax2 db 4
         deltay2 db 1
-        xpos2 db 30
+        xpos2 db 15
         ypos2 db 10
-        rebotes2 db 5
+        rebotes2 db 30
         dummy2 db ?
         borrar2 db 3
         ;Selecciona cual background va a dibujar la flor
 	backgroundSelect2 db 0
         
         ; delay
-        delay dw 0009h
+        delay dw 0001h
         
         ;mapa de borron
 	erasePixel db 4000 dup(0)
@@ -52,39 +52,245 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	yellow db 0eeh
         black db 00h
         gray db 088h
+	purple db 55h
+	detailBrown db 60h
 
 .code
 
-;_________________________________________________________________________
-;Dibuja los bloques gris (editado por Daphne 23 de Octubre) 
-block macro
-local paintingBlock
-local painting
 
-push ax
-push cx
-push dx
+;Dibuja un goomba, dh es la fila dl es la columna (Creado por Jaime 11 de noviembre de 2009)
 
-mov cx, 10 ;((((habia un 2, y este se agranda verticalmente hacia abajo por filas))))
-paintingBlock:
-push cx
-mov cx, 4 ;(((se agranda horizontalmente hacia la derecha columna))
-painting:
-colorPixel dh, dl, gray, 4
-inc dl
-loop painting
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintingBlock
+goomba macro
 
-pop dx
-pop cx
-pop ax
+	push ax
+	push cx
+	push dx
+
+	mov cx, 5
+
+	paintingRow1:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow1
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+	mov cx, 7
+	paintingRow2:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow2
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+		;Painting third row
+
+	colorPixel dh, dl, brown, 2
+	inc dl
+	colorPixel dh, dl, brown, 2
+	inc dl
+
+	mov cx, 5
+	paintingRow3:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow3
+
+	colorPixel dh, dl, brown, 2
+	inc dl
+	colorPixel dh, dl, brown, 2
+		;End painting third row
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+		;Painting fourth row
+
+	mov cx, 11
+	paintingRow4First:
+		colorPixel dh, dl, brown, 2
+		inc dl 
+	loop paintingRow4First
+
+	pop dx
+	push dx
+	add dl, 2
+
+	mov cx, 7
+	paintingRow4Second:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow4Second
+
+	pop dx
+	push dx
+	add dl, 4
+	colorPixel dh, dl, black, 2
+	add dl, 2
+	colorPixel dh, dl, black, 2
+	
+		;End painting fourth row
+	pop dx
+	dec dl
+	inc dh
+	push dx
+		;Painting fifth row
+
+	mov cx, 13
+	paintingRow5:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow5
+
+		;End painting fifth row
+
+	pop dx
+	inc dh
+	push dx
+		;Painting sixth row
+	mov cx, 13
+	paintingRow5First:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow5First
+	
+	pop dx
+	push dx
+	add dl, 4
+
+	mov cx, 5
+	paintingRow5Second:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow5Second
+		;End painting sixth row	
+
+	pop dx
+	inc dl
+	inc dh
+	push dx
+	
+		;Painting seventh row
+
+	mov cx, 11
+	paintingRow6First:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow6First
+
+	pop dx
+	push dx
+	add dl, 4
+
+	mov cx, 3
+	paintingRow6Second:
+	
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow6Second
+		;End painting seventh
+	pop dx
+	inc dh
+	push dx
+
+		;Painting Eighth Row
+
+	mov cx, 4
+	paintingRow7First:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow7First
+
+	add dl, 3
+
+	mov cx, 4
+	paintingRow7Second:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow7Second
+
+	
+		;End painting Eighth
+	pop dx
+	pop cx
+	pop ax
+
 endm
+
+;Dibuja una moneda, dh es fila y dl columna
+coin macro
+
+	local paintingSecond
+	local paintingThird
+
+	push ax
+	push cx
+	push dx
+	
+	colorPixel dh, dl, purple, 2
+	
+	pop dx
+	inc dh
+	dec dl
+	push dx	
+	
+	;Painting second row
+
+	mov cx, 3
+	
+	paintingSecond:
+	
+		colorPixel dh, dl, purple, 2
+		inc dl
+
+	loop paintingSecond
+	
+	;End second
+
+	pop dx
+	inc dh
+	push dx
+
+	;Painting third row	
+	
+	mov cx, 3
+
+	paintingThird:
+		colorPixel dh, dl, purple, 2
+		inc dl
+	loop paintingThird
+
+	
+	;End third
+
+	pop dx
+	inc dh
+	inc dl
+	push dx
+
+	colorPixel dh, dl, purple, 2
+
+	pop dx
+	pop cx
+	pop ax
+	
+
+endm
+
 
 ;____________((((((((KOOPA)))))))))))))___________________________________
 ;(((((((((Dibuja a koopa (editado por Daphne 23 de Octubre de 2009))))))))
@@ -573,7 +779,7 @@ paintingBlock:
 	push cx
 	mov cx, 4
 	painting:
-		colorPixel dh, dl, brown, 2
+		colorPixel dh, dl, Brown, 2
 		inc dl
 	loop painting
 	mov al, dh
@@ -808,7 +1014,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 1000
+	mov cx, 5000
 
 	mov al, rebotes
 	mov dummy, al
@@ -947,13 +1153,15 @@ background proc
 	
 	mov cx, 400
 	paintingGround:
-		mov ah, brown
-		mov al, 0
+		mov ah, detailBrown
+		mov al, 0b0h
 		mov render[bx], al
 		inc bx
 		mov render[bx], ah
 		inc bx
 	loop paintingGround
+
+
 	
 	mov dl, 71
 	mov dh, 14
@@ -1006,6 +1214,14 @@ background proc
 	mov dh, 12
 	mov dl, 12
 	block
+
+	mov dh, 7
+	mov dl, 14
+	coin
+
+	mov dh, 7
+	mov dl, 13
+	coin
 		
 	mov cx, 3
 	mov dh, 12
@@ -1018,6 +1234,14 @@ background proc
 	mov dh, 6
 	mov dl, 36
 	block
+
+	mov dh, 1
+	mov dl, 37
+	coin
+	
+	mov dh, 1
+	mov dl, 38
+	coin
 	
 	
 	mov dh, 19
@@ -1027,7 +1251,11 @@ background proc
 	mov dh, 19
 	mov dl, 60
 	bush
-		
+		;Anadi goomba
+	mov dh, 12
+	mov dl, 51
+	goomba
+		;Se acabo
 	
 	pop dx
 	pop dx
@@ -1083,22 +1311,27 @@ push bx
 push cx
 push dx
 
+	;Se agrego esta parte a la subrutina para que el la parte de atras del background no sea enteramente negra
+
+	;Se termino modificacion
+
 mov bx, 0
 mov cx, 160
 paintingGris:
-mov ah, gray
+mov ah, white
 mov al, 0
-mov bowserCastle[bx], ah
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingGris
 
 mov cx, 1280
 paintingNegro:
-mov ah, black
-mov al, 0
-mov bowserCastle[bx], ah
+mov ah, 04h
+mov al, 0b0h
+mov bowserCastle[bx], al
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingNegro
 
@@ -1106,8 +1339,8 @@ mov cx, 560
 paintingLava:
 mov ah, red
 mov al, 0
-mov bowserCastle[bx], ah
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingLava
 
