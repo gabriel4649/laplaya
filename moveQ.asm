@@ -579,15 +579,23 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-													;;;;;;Gabriel hizo este;;;;;;;;
+										
+;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array
 
-;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
+;Precondiciones: N/A
+;PostCondiciones: A erasePixel se le aÃ±aden las variables que representan las partes borradas y los backgrounds
+
+;Parametros/Registros: borrar que es la variable que contiene el estado de borrar, meneco que contiene la imagen que se va a usar y bgType que contiene
+;el tipo de variable de background que se va a escribir al mapa de borron. 
+
+;Creado por Gabriel el 14 de octubre de 2009
+ 
 setErasePixels macro borrar, muneco, bgType
         local dontDoAnything, noSetPixel, finished, writeBack2
-        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
+        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal del macro. 
 	je dontDoAnything
 
-	push ax; Guardar a ax
+	push ax; Guardar registros
 	push cx
 	    
         mov ah, white; Guardar valores originales de white y red 
@@ -595,40 +603,40 @@ setErasePixels macro borrar, muneco, bgType
 	mov ch, green
 	
      
-	cmp borrar, 1
+	cmp borrar, 1; Verificar si se encuentra en el estado 1, el estado de escribir backgrounds
         jnz noSetPixel
-        cmp bgType, 1
-	je writeBack2
-        mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
+       
+        cmp bgType, 1; Verificar el estado de bgType, si esta en 1 se escribe el segundo background
+	je writeBack2    
+        mov white, 0; Poner 0 el red y white para cuando se escriba el muneco en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
         mov red, 0
 	mov green, 0
-     
 	muneco 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
         
 	jmp finished
-        	
-	noSetPixel:
-	
-	
-	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
-        mov red, 1
-	mov green, 1
-	muneco 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
-	jmp finished
-	
-	writeBack2:
+
+        writeBack2:; Escribir 2 al mapa de borrar en forma del muneco
 	mov white, 2
 	mov red, 2
 	mov green, 2
 	muneco 1
+
+        jmp finished
+        	
+	noSetPixel:	
+	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un muneco compuesto de 1s. 
+        mov red, 1
+	mov green, 1
+	muneco 1; Escribir el muneco que consiste de 1s al mapa de borrar. 
         
         finished:
-        mov white, ah; Restaurar white y red
+        mov white, ah; Restaurar white, red y green
         mov red, al
 	mov green, ch
 
-	pop cx
+	pop cx; Restaurar registros
 	pop ax
+
         dontDoAnything:
 
 endm
@@ -1020,7 +1028,18 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
+;Macro que verifica si el objeto debe comenzar a borrar la imagen o si debe escribir uno de los backgrounds
+
+;Precondiciones: N/A
+;PostCondiciones: Puede que se modifique el estado de borrar si es que hay un cambio de estado y dummy siempre va a cambiar. 
+;Tambien se podria invertir el valorbgType si hay un cambio al estado 1.
+
+;Parametros/Registros: borrar que es la variable que contiene el estado de borrar, dummy que es una variable temporera utilizada para 
+;mantener cuenta de los estados, rebotes que es el numero de rebotes que debe hacer el objeto antes de cambiar de estado
+;y bgType que contiene que contiene el tipo de background que se va a escribir al mapa de borron. 
+
+;Creado por Gabriel el 14 de octubre de 2009
+
 setErase macro borrar, dummy, rebotes, bgType
         ; Borrar
         ; Estado 3 = No hacer nada, flotar
@@ -1135,13 +1154,13 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Cuando la imagen se sale de la pantalla, este macro la dibuja en el borde por donde se salió.
+;Cuando la imagen se sale de la pantalla, este macro la dibuja en el borde por donde se saliï¿½.
 
 ;Precondiciones:
 ;Postcondiciones:
 
 ;Parametros:
-;1-Delta: Se utiliza este parametro para verificar por donde se salió la imagen y para mover esta otra vez a la pantalla.
+;1-Delta: Se utiliza este parametro para verificar por donde se saliï¿½ la imagen y para mover esta otra vez a la pantalla.
 ;2-Pos: Este parametro indica la posicion actual de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla.
 ;3-Lengthh: Este parametro es el largo o ancho de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
 ;4-Border: Este parametro es el largo o ancho de la pantalla. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
@@ -1288,6 +1307,15 @@ main endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Subrutina que pasa la variable render a la memoria de video. 
+
+;Precondiciones: N/A
+;PostCondiciones: Modifica el contenido de la memoria de video. 
+
+;Parametros/Registros: render, la variable que contiene lo que se va a copiar a la memoria de video. 
+
+;Creado por Gabriel el 15 de octubre de 2009
+
 doRender proc
          push ax; Guardar los registros
          push bx
@@ -1306,7 +1334,7 @@ doRender proc
          inc bx
          loop renderLoop
          
-	 pop cx
+	 pop cx; Restaurar los registros
          pop bx
          pop ax
 	 ret
