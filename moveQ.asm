@@ -81,10 +81,10 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 
 ;Dibuja la imagen de un goomba a la variable render,
 
-;Precondiciones: N/A
-;PostCondiciones N/A
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda a la variable render, con respecto a un desplazamiento bx equivalente a las coordenadas entradas, la imagen 
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
 
 ;Creado por Jaime 11 de noviembre de 2009
@@ -267,10 +267,10 @@ endm
 
 ;Dibuja la imagen de una moneda a la variable render,
 
-;Precondiciones: N/A
-;PostCondiciones N/A
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda a la variable render, con respecto a un desplazamiento bx equivalente a las coordenadas entradas, la imagen 
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
 
 ;Creado por Jaime 11 de noviembre de 2009
@@ -440,6 +440,11 @@ pop cx
 pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;______________red_______-
 rojo macro
 local paintRed
@@ -548,13 +553,23 @@ endm
 ;Este macro mueve la posicion actual de una imagen,
 
 ;Precondiciones: N/A
-;PostCondiciones N/A
+;PostCondiciones: Se cambian las variables xpos y ypos, o sea la posicion actual del objeto
 
-;Parametros/Registros: Se escriben las coordenadas donde se va a dibujar en dx, dh es la fila y dl es la columna.
+;par�metros/Registros:
+;1-Deltax Movimiento del objeto en la direcci�n x.
+;2-Deltay Movimiento del objeto en la direcci�n y.
+;3-Xpos Columna en la que se encuentra el objeto.
+;4-Ypos Fila en la que se encuentra el objeto.
+;5-Borrar Determina si el objeto va a flotar, borrar o pintar.
+;6-Dummy Determina el numero de rebotes que le quedan al objeto.
+;7-Rebotes Determina el numero de rebotes que deben ocurrir para que el objeto cambie de posici�n.
+;8-Height Determina el largo del objeto.
+;9-Widthh Determina el ancho del objeto.
+;10-BgType Determina cual de los backgrounds se va a dibujar.
 
-;Creado por Jaime 11 de noviembre de 2009
+;Creado por Jaime 14 de octubre de 2009
 
-moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh, bgType
+moveOb macro deltax:req, deltay:req, xpos:req, ypos:req, borrar:req, dummy:req, rebotes:req, height:req, widthh:req, bgType:req
 	push ax
 	push bx
 	push cx
@@ -647,14 +662,13 @@ endm
 ;Dibuja la imagen de un hongo a la variable render,
 
 ;Precondiciones: Utiliza las variables xpos y ypos para determinar con respecto a que localizacion va a crear la imagen.
-;PostCondiciones N/A
+;PostCondiciones: Guarda a la variable render, con respecto a un desplazamiento bx equivalente a las coordenadas dadas por xpos y pos, la imagen  
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx guarda localmente las variables xpos y ypos para no alterar sus valores cuando se termine de ejecutar el macro.
 
-;Creado por Jaime 11 de noviembre de 2009
+;Creado por Jaime 15 de octubre de 2009
 
-;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
 
 mushroom macro location
 	local supRed
@@ -826,10 +840,10 @@ endm
 
 ;Dibuja la imagen de una nube a la variable render,
 
-;Precondiciones: N/A
-;PostCondiciones N/A
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen 
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
 
 ;Creado por Jaime 15 de octubre de 2009
@@ -889,12 +903,12 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Dibuja la imagen de una nube a la variable render,
+;Dibuja la imagen de un bloque a la variable render,
 
-;Precondiciones: N/A
-;PostCondiciones N/A
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen 
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
 
 ;Creado por Jaime 16 de octubre de 2009
@@ -935,10 +949,10 @@ endm
 
 ;Dibuja la imagen de un arbusto a la variable render,
 
-;Precondiciones: N/A
-;PostCondiciones N/A
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen 
 
-;Parametros/Registros: 
+;par�metros/Registros: 
 ;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
 
 ;Creado por Jaime 16 de octubre de 2009
@@ -990,9 +1004,18 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Macro que determina el desplazamiento equivalente a las coordenadas entradas
 
-;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx(Creado por Jaime el 13 de octubre de 2009)
-coordenadas macro fila, columna
+;Precondiciones: N/A
+;PostCondiciones: Almacena en bx el desplazamiento equivalentes utilizando como referencia las filas y columnas.
+
+;par�metros/Registros: 
+;1-Fila Aqu� se escribe el valor de la fila
+;2- Columna Aqu� se escribe el valor de la columna
+
+;Creado por Jaime 13 de octubre de 2009
+
+coordenadas macro fila:req, columna:req
 	push ax
 	mov al, fila
 	mov ah, 0
@@ -1012,8 +1035,20 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Macro que actualiza la posicion del objeto utilizando como parametros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
-moveD macro delta, pos
+;Macro que mueve por un factor delta la posici�n actual de un pixel
+
+;Precondiciones: N/A
+;PostCondiciones: Cambia por un factor delta la variable pos
+
+;par�metros/Registros: 
+;1-Delta Cantidad en la que se va a mover el pixel
+;2- Pos Variable que representa la posici�n actual del pixel
+
+;Creado por Jaime 13 de octubre de 2009
+
+
+;Macro que actualiza la posicion del objeto utilizando como par�metros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
+moveD macro delta:req, pos:req
 	push ax
 	mov al, delta
 	mov ah, 0
@@ -1094,8 +1129,21 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
-colorPixel macro fila, columna, color, memoria
+;Macro que pinta un pixel
+
+;Precondiciones: N/A
+;PostCondiciones: El segmento de memoria o variable que se altera depende del tipo de memoria al que se quiere escribir.
+
+;par�metros/Registros: 
+;1-Fila El numero de la fila al que se le desea pintar.
+;2- Columna El numero de la columna al que se le desea pintar.
+;3- Color Es la variable que representa el color al que se desea pintar el pixel.
+;4- Memoria Indica a que segmento de memoria o variable se desea pintar.
+
+;Creado por Jaime 13 de octubre de 2009
+
+;Macro que utiliza como par�metros la fila, columna y el color en el que se va a dibujar un pixel en video
+colorPixel macro fila:req, columna:req, color:req, memoria:req
         ;Memoria 1 = Mapa de donde se va a borrar
         ;Memoria 2 = Memoria render, la memoria intermedia que despues se copia a la memoria de video
         ;Memoria 3 = Memoria de video
@@ -1156,18 +1204,19 @@ endm
 
 ;Cuando la imagen se sale de la pantalla, este macro la dibuja en el borde por donde se sali�.
 
-;Precondiciones:
-;Postcondiciones:
+;Precondiciones: N/A
+;Postcondiciones: Cambia la variable pos para que la imagen se encuentre dentro de la pantalla
 
-;Parametros:
-;1-Delta: Se utiliza este parametro para verificar por donde se sali� la imagen y para mover esta otra vez a la pantalla.
-;2-Pos: Este parametro indica la posicion actual de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla.
-;3-Lengthh: Este parametro es el largo o ancho de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
-;4-Border: Este parametro es el largo o ancho de la pantalla. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
+;par�metros:
+;1-Delta: Se utiliza este par�metro para verificar por donde se sali� la imagen y para mover esta otra vez a la pantalla.
+;2-Pos: Este par�metro indica la posicion actual de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla.
+;3-Lengthh: Este par�metro es el largo o ancho de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
+;4-Border: Este par�metro es el largo o ancho de la pantalla. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
 ;5-Ax: Este registro guarda temporeramente el valor de delta.
 
 ;Creado por Jaime A. Torres el 12 de noviembre de 2009
-goToEdge macro delta, pos, lengthh, border
+
+goToEdge macro delta:req, pos:req, lengthh:req, border:req
 
 	local loop1
 	local rightOrBelow
@@ -1208,9 +1257,20 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Macro que verifica si el objeto se salio de la pantalla
 
-;Macro que determina si el objeto se salio de la pantalla y le cambia la direccion para arreglarlo. (Creado por Jaime 24 de octubre de 2009)
-checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes, bgType
+;Precondiciones: N/A
+;Postcondiciones: Invierte el signo de delta si la imagen se sale de la pantalla y cambia la posicion del objeto para que est� dentro de esta.
+
+;par�metros:
+;1-Delta: Se utiliza este par�metro para verificar por donde se sali� la imagen y para mover esta otra vez a la pantalla.
+;2-Pos: Este par�metro indica la posicion actual de la imagen. Se utiliza para verificar si la imagen se sali� de la pantalla.
+;3-Lengthh: Este par�metro es el largo o ancho de la imagen. Se utiliza para verificar si la imagen se sali� por la parte derecha o inferior de la pantalla.
+;4-Border: Este par�metro es el largo o ancho de la pantalla. Se utiliza para verificar si la imagen se sali� por la parte derecha o inferior de la pantalla.
+
+;Creado por Jaime A. Torres el 24 de octubre de 2009
+
+checkPixel macro delta:req, pos:req, border:req, lengthh:req, borrar:req, dummy:req, rebotes:req, bgType:req
 
 	local outBorder
 	local boundaryChecked
@@ -1219,7 +1279,7 @@ checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes, bgType
 	mov al, border
 	mov ah, lengthh
 	
-	sub al, ah ;Esta resta se hace con el proposito de verificar hasta que punto relativo puede moverse el objeto
+	sub al, ah ;Esta resta se hace con el prop�sito de verificar hasta que punto relativo puede moverse el objeto
 	  
 	cmp pos, 0
 	jl outBorder;if pos is negative
@@ -1233,22 +1293,12 @@ checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes, bgType
 	outBorder:
 	
 	goToedge delta, pos, lengthh, border
-	changeDelta delta, pos, borrar, dummy, rebotes, bgType
+	neg delta
+	setErase borrar, dummy, rebotes, bgType
 	    
 	  boundaryChecked:
 	  pop ax
 
-endm
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;Macro que cambia direccion a la que se mueve el objeto. (Creado por Jaime 24 de octubre de 2009)
-changeDelta macro delta, pos, borrar, dummy, rebotes, bgType
-	neg delta
-	setErase borrar, dummy, rebotes, bgType
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1290,12 +1340,12 @@ main proc
 	
 	
 	call sleep
-	
-	loop jumpFarther
-	jmp finishMain
-	
-	jumpfarther:
 	jmp again
+	;loop jumpFarther
+	;jmp finishMain
+	
+	;jumpfarther:
+	;jmp again
 	
 	finishMain:
 	mov ax, 4c00h
@@ -1345,7 +1395,15 @@ doRender endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Esta subrutina manipula la velocidad a la que va a correr el programa utilizando la variable delay(Creado por Jaime el 13 de octubre de 2009)
+;Macro que causa atraso en el tiempo que se ejecuta el programa
+
+;Precondiciones: N/A
+;Postcondiciones: N/A
+
+;Par�metros/Registros:
+
+;Creado por Daphne el 13 de octubre de 2009
+
 sleep proc
 	push cx
 	
@@ -1367,9 +1425,15 @@ sleep endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Verifica si el objeto se salio de la pantalla y si esto ocurre, cambia la direccion a la que se va a mover
+;Pinta el segundo background o borra las imagenes.
 
-;Borra la parte de la pantalla que se debe borrar luego de que el objeto rebota varias veces en la pantalla (Creado por Jaime el 14 de octubre de 2009)
+;Precondiciones: N/A
+;Postcondiciones: Escribe a bytes de render parte del background segundo o el color negro.
+
+;par�metros/Registros: N/A
+
+;Creado por Jaime A. Torres el 14 de octubre de 2009
+
 eraser proc
 	push ax
 	push cx
@@ -1379,7 +1443,7 @@ eraser proc
 	mov bx, 0
 	checkErase:
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
-		jnz CheckifDrawBack2 ;If el pixel no es cero, vuelve a iterar
+		jnz CheckifDrawBack2 ;Si el pixel no es uno, verifica si pertenece al segundo background
 		mov ax, 0h
 		mov render[bx], al
 		inc bx
@@ -1388,8 +1452,8 @@ eraser proc
 		jmp doNothing
 		
 		CheckifDrawBack2:
-		cmp erasePixel[bx], 2
-		jnz doNothing
+		cmp erasePixel[bx], 2 ;Verifica si se debe pintar el segundo background en el pixel apuntado por bx
+		jnz doNothing ;Si el pixel no es dos, vuelve a iterar
 		mov al, bowserCastle[bx]
 		mov render[bx], al
 		inc bx
@@ -1412,6 +1476,15 @@ eraser endp
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Pinta el primer background a render.
+
+;Precondiciones: N/A
+;Postcondiciones: Escribe a render el primer background.
+
+;par�metros/Registros: N/A
+
+;Creado por Jaime A. Torres el 16 de octubre de 2009
 
 
 background proc
@@ -1550,12 +1623,21 @@ background endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Determina si se va a borrar o dibujar uno de los backgrounds.
+
+;Precondiciones: N/A
+;Postcondiciones: Escribe en la variable erasePixel si se va a borrar o pintar el pixel apuntado por este.
+
+;par�metros/Registros: N/A
+
+;Creado por Daphne el 10 de noviembre de 2009
+
 writeToBorron proc
 
 	cmp ah, 1 ;Si es uno se borra, por lo tanto se debe cambiar el pixel independientemente del background que se utilice
 	je erasePix		
 		
-	cmp erasePixel[bx], 1 ;Si el pixel en el que se va a escribir es uno, es que este espacio ya se borro y se le puede escribir encima con cualquiera de los dos backgrounds
+	cmp erasePixel[bx], 1 ;Si el pixel en el que se va a escribir es uno, es que este espacio ya se borr� y se le puede escribir encima con cualquiera de los dos backgrounds
 	je erasePix
 	jmp endWriteBorr
 		
@@ -1564,7 +1646,7 @@ writeToBorron proc
 	inc bx
 	mov erasePixel[bx], ah; Repetir para el proximo byte
     endWriteBorr:
-ret
+	ret
 writeToBorron endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1572,6 +1654,14 @@ writeToBorron endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Escribe a render.
+
+;Precondiciones: N/A
+;Postcondiciones: Se modifica la variable render.
+
+;par�metros/Registros: N/A
+
+;Creado por Daphne el 10 de noviembre de 2009
 
 writeToRender proc
 
@@ -1579,7 +1669,7 @@ writeToRender proc
 	inc bx
 	mov render[bx], ah; Escribir en el proximo byte el color ah
 
-ret
+	ret
 writeToRender endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1587,16 +1677,33 @@ writeToRender endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Escribe directamente a video.
+
+;Precondiciones: N/A
+;Postcondiciones: Se modifica la informaci�n contenida en la pantalla de video.
+
+;par�metros/Registros: N/A
+
+;Creado por Daphne el 10 de noviembre de 2009
 
 writeToVideo proc
 	escribirAVideo: mov es:[bx], ax; Pasar el byte entero a la memoria de video
-ret
+	ret
 writeToVideo endp
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Escribe a la variable bowserCastle.
+
+;Precondiciones: N/A
+;Postcondiciones: Se modifica la variable bowserCastle. Esta va a contener el segundo background.
+
+;par�metros/Registros: N/A
+
+;Creado por Daphne el 10 de noviembre de 2009
 
 writeToBack2 proc
 	mov bowserCastle[bx], al
