@@ -4,71 +4,70 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 .data
 	marca db '>>>>'
 	
-        ;Variables del hongo
-        deltax db -4
-	deltay db 1
-	xpos db 40
-	ypos db 2
-        rebotes db 30
+	;Variables del hongo
+	deltax db -4; cuantas veces se mueve en la direccion x
+	deltay db 1; cuantas veces se mueve en la direccion y
+	xpos db 40; posicion inicial en el eje de x
+	ypos db 12; posicion inicial en el eje de y
+	rebotes db 30; numero de rebotes antes de que cambie de estado
 	;Variables del hongo fin 
+
+        ;Variables de la flor
+	deltax2 db 4; cuantas veces se mueve en la direccion x
+	deltay2 db 1; cuantas veces se mueve en la direccion y
+	xpos2 db 40; posicion inicial en el eje de x
+	ypos2 db 12; posicion inicial en el eje de y
+	rebotes2 db 30; numero de rebotes antes de que cambie de estado
+	dummy2 db ?; variable temporera, no modificar
+	borrar2 db 3; estado inicial de la segunda flor
+	;Variables de la flor fin
 	
-	 ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
-	dummy db ?
+	; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
+	dummy db ?; variable temporera, no modificar
 	
 	; Determina el estado de la imagen, o sea si va a flotar, borrar o pintar de nuevo el background.
 	; (0) Pinta
 	; (1) Borra
 	; (3) Flota
-	borrar db 3  
+	borrar db 3 ; estado inicial del hongo
 	
-        ;Selecciona cual background es el que se va a dibujar el hongo
+	;Selecciona cual background es el que se va a dibujar el hongo
 	;En 0 dibuja el background original y en 1 dibuja el segundo background
 	backgroundSelect1 db 0
-	
- 
-        ;Variables de la flor
-        deltax2 db 4
-        deltay2 db 1
-        xpos2 db 15
-        ypos2 db 10
-        rebotes2 db 30
-        dummy2 db ?
-        borrar2 db 3
-	;Variables de la flor fin
 	
 	;Selecciona cual background es el que se va a dibujar la flor
 	;En 0 dibuja el background original y en 1 dibuja el segundo background
 	backgroundSelect2 db 0
         
-        ;Determina cuan rapido se va a mover la imagen, o sea cuan rapido va a correr el programa
-        delay dw 0001h
+	;Determina cuan rapido se va a mover la imagen, o sea cuan rapido va a correr el programa
+	delay dw 00ffh
         
-        ;Variable que determina que pixel se va a dibujar en la pantalla.
+	;Variable que determina que pixel se va a dibujar en la pantalla.
 	;(0) Se dibuja pixel del primer background
 	;(1) Se dibuja un pixel negro
 	;(2) Se dibuja pixel del segundo background
 	erasePixel db 4000 dup(0)
 	
 	
-        ;La imagen que se va a dibujar en pantalla primero se dibuja en esta variable.
+	;La imagen que se va a dibujar en pantalla primero se dibuja en esta variable.
 	;Esto se hace para que no se vea el proceso de borrar y de dibujar la imagen.
 	;De esta manera cuando se dibuja a pantalla se ve mas bonito
-        render db 4000 dup(0)
+	render db 4000 dup(0)
 	
 	
 	;Esta variable contiene el segundo background
 	bowserCastle db 4000 dup(0)
 	
 
-        ;colores
+	;colores
 	red db 44h
 	white db 0ffh
 	blue db 11h
 	green db 22h
 	brown db 66h
 	yellow db 0eeh
-        black db 00h
-        gray db 088h
+	black db 00h
+	gray db 088h
 	purple db 55h
 	detailBrown db 60h
 
@@ -338,36 +337,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;____________((((((((KOOPA)))))))))))))___________________________________
-;(((((((((Dibuja a koopa (editado por Daphne 23 de Octubre de 2009))))))))
+;Dibuja la imagen de koopa a la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 23 de Octubre de 2009
 
 koopa macro
-local paintingKoopa
-local paintingK
+	local paintingKoopa
+	local paintingK
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 1
-paintingKoopa:
-push cx
-mov cx, 1
-paintingK:
-colorPixel dh, dl, green, 4
-inc dl
-loop paintingK
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintingKoopa
+	mov cx, 1
+	paintingKoopa:
+	push cx
+	mov cx, 1
+	paintingK:
+	colorPixel dh, dl, green, 4
+	inc dl
+	loop paintingK
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintingKoopa
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -375,34 +381,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;_______(((((((((((((((((((Blanco)))))))))))))))_______________________________
+;Dibuja el color blanco a la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 23 de Octubre de 2009
+
 blanco macro
-local paintBlanco
-local paintB
+	local paintBlanco
+	local paintB
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 1
-paintBlanco:
-push cx
-mov cx, 1
-paintB:
-colorPixel dh, dl, white, 4
-inc dl
-loop paintB
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintBlanco
+	mov cx, 1
+	paintBlanco:
+	push cx
+	mov cx, 1
+	paintB:
+	colorPixel dh, dl, white, 4
+	inc dl
+	loop paintB
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintBlanco
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -410,34 +425,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;________________((((((((((((crema)))))))))))))))))))_____________
+;Dibuja el color crema a la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 23 de Octubre de 2009
+
 crema macro
-local paintCrema
-local paintC
+	local paintCrema
+	local paintC
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 1;((((((((((((((Cambie el 2))))))))))))))))
-paintCrema:
-push cx
-mov cx, 1;(((((((((((((Cambie el 4))))))))))))))))
-paintC:
-colorPixel dh, dl, yellow, 4
-inc dl
-loop paintC
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintCrema
+	mov cx, 1
+	paintCrema:
+	push cx
+	mov cx, 1
+	paintC:
+	colorPixel dh, dl, yellow, 4
+	inc dl
+	loop paintC
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintCrema
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -445,34 +469,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;______________red_______-
+;Dibuja el color rojo para Mario a la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 27 de Octubre de 2009
+
 rojo macro
-local paintRed
-local paintR
+	local paintRed
+	local paintR
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 1;
-paintRed:
-push cx
-mov cx, 1;
-paintR:
-colorPixel dh, dl, red, 4
-inc dl
-loop paintR
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintRed
+	mov cx, 1;
+	paintRed:
+	push cx
+	mov cx, 1;
+	paintR:
+	colorPixel dh, dl, red, 4
+	inc dl
+	loop paintR
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintRed
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -480,34 +513,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;_______Macro Peach_____
+;Dibuja el color marron a la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 27 de Octubre de 2009
+
 peach macro
-local paintPeach
-local paintP
+	local paintPeach
+	local paintP
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 1
-paintPeach:
-push cx
-mov cx, 1
-paintP:
-colorPixel dh, dl, brown, 4
-inc dl
-loop paintP
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintPeach
+	mov cx, 1
+	paintPeach:
+	push cx
+	mov cx, 1
+	paintP:
+	colorPixel dh, dl, brown, 4
+	inc dl
+	loop paintP
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintPeach
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -515,34 +557,43 @@ endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;_________Dibuja el bloque________
+;Dibuja un bloque gris en la variable render,
+
+;Precondiciones: Guardar coordenadas donde se quiere que se dibuje la imagen en dx
+;PostCondiciones: Guarda con respecto a un desplazamiento bx equivalente a las coordenadas entradas la imagen
+
+;par�metros/Registros:
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Daphne 27 de Octubre de 2009
+
 bloque macro
-local paintBloq
-local paintB
+	local paintBloq
+	local paintB
 
-push ax
-push cx
-push dx
+	push ax
+	push cx
+	push dx
 
-mov cx, 3
-paintBloq:
-push cx
-mov cx, 5
-paintB:
-colorPixel dh, dl, brown, 4
-inc dl
-loop paintB
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintBloq
+	mov cx, 3
+	paintBloq:
+	push cx
+	mov cx, 5
+	paintB:
+	colorPixel dh, dl, brown, 4
+	inc dl
+	loop paintB
+	mov al, dh
+	pop cx
+	pop dx
+	push dx
+	inc al
+	mov dh, al
+	loop paintBloq
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -606,53 +657,53 @@ endm
 ;Creado por Gabriel el 14 de octubre de 2009
  
 setErasePixels macro borrar, muneco, bgType
-        local dontDoAnything, noSetPixel, finished, writeBack2
-        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal del macro. 
+	local dontDoAnything, noSetPixel, finished, writeBack2
+	cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal del macro. 
 	je dontDoAnything
 
 	push ax; Guardar registros
 	push cx
-	    
-        mov ah, white; Guardar valores originales de white y red 
-        mov al, red
+
+	mov ah, white; Guardar valores originales de white y red 
+	mov al, red
 	mov ch, green
-	
-     
+
+
 	cmp borrar, 1; Verificar si se encuentra en el estado 1, el estado de escribir backgrounds
-        jnz noSetPixel
-       
-        cmp bgType, 1; Verificar el estado de bgType, si esta en 1 se escribe el segundo background
+	jnz noSetPixel
+
+	cmp bgType, 1; Verificar el estado de bgType, si esta en 1 se escribe el segundo background
 	je writeBack2    
-        mov white, 0; Poner 0 el red y white para cuando se escriba el muneco en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
-        mov red, 0
+	mov white, 0; Poner 0 el red y white para cuando se escriba el muneco en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
+	mov red, 0
 	mov green, 0
 	muneco 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
-        
+
 	jmp finished
 
-        writeBack2:; Escribir 2 al mapa de borrar en forma del muneco
+	writeBack2:; Escribir 2 al mapa de borrar en forma del muneco
 	mov white, 2
 	mov red, 2
 	mov green, 2
 	muneco 1
 
-        jmp finished
-        	
+	jmp finished
+
 	noSetPixel:	
 	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un muneco compuesto de 1s. 
-        mov red, 1
+	mov red, 1
 	mov green, 1
 	muneco 1; Escribir el muneco que consiste de 1s al mapa de borrar. 
-        
-        finished:
-        mov white, ah; Restaurar white, red y green
-        mov red, al
+
+	finished:
+	mov white, ah; Restaurar white, red y green
+	mov red, al
 	mov green, ch
 
 	pop cx; Restaurar registros
 	pop ax
 
-        dontDoAnything:
+	dontDoAnything:
 
 endm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -672,52 +723,52 @@ endm
 
 mushroom macro location
 	local supRed
-        local infRed
-        local whitePart
+	local infRed
+	local whitePart
 
 	push ax
 	push bx
 	push cx
 	push dx
-	
+
 	mov bx, 0
 	mov dh, ypos
 	mov dl, xpos
 	push dx
 	add xpos, 1
-	
+
 	mov cx, 4
 	supRed:
-		colorpixel ypos, xpos, red, location
-		add xpos, 1
+	colorpixel ypos, xpos, red, location
+	add xpos, 1
 	loop supRed
 	add ypos, 1
-	
+
 	pop dx
 	mov xpos, dl
 	push dx
 	mov cx, 6
-	
+
 	infRed:
-		colorpixel ypos, xpos, red, location
-		add xpos, 1
+	colorpixel ypos, xpos, red, location
+	add xpos, 1
 	loop infRed
 	add ypos, 1
-	
+
 	pop dx
 	mov xpos, dl
 	push dx
 	add xpos, 1
 	mov cx, 4
 	whitePart:
-		colorpixel ypos, xpos, white, location
-		add xpos, 1
+	colorpixel ypos, xpos, white, location
+	add xpos, 1
 	loop whitePart
-	
+
 	pop dx
 	mov xpos, dl
 	mov ypos, dh
-	
+
 	pop dx
 	pop cx
 	pop bx
@@ -730,107 +781,111 @@ endm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
                                              
-;Este macro dibuja una flor
+;Dibuja la imagen de una flor a la variable render,
+
+;Precondiciones: Utiliza las variables xpos y ypos para determinar con respecto a que localizacion va a crear la imagen.
+;PostCondiciones: Guarda a la variable render, con respecto a un desplazamiento bx equivalente a las coordenadas dadas por xpos y pos, la imagen
+
+;par�metros/Registros:
+;1-Dx guarda localmente las variables xpos y ypos para no alterar sus valores cuando se termine de ejecutar el macro.
+
+;Creado por Daphne 6 de noviembre de 2009
+
 flower macro location
-local fwhite
-local swhite
-local twhite
-local yello
-local hoja
-local verde
+	local fwhite
+	local swhite
+	local twhite
+	local yello
+	local hoja
+	local verde
 
-push ax
-push bx
-push cx
-push dx
+	push ax
+	push bx
+	push cx
+	push dx
 
-mov bx, 0
-mov dh, ypos2
-mov dl, xpos2
-push dx
-add xpos2, 1
+	mov bx, 0
+	mov dh, ypos2
+	mov dl, xpos2
+	push dx
+	add xpos2, 1
 
-mov cx, 3
-fwhite:
-colorpixel ypos2, xpos2, white, location
-add xpos2, 1
-loop fwhite
-add ypos2, 1
+	mov cx, 3
+	fwhite:
+	colorpixel ypos2, xpos2, white, location
+	add xpos2, 1
+	loop fwhite
+	add ypos2, 1
 
-pop dx
-mov xpos2, dl
-push dx
-mov cx, 5
+	pop dx
+	mov xpos2, dl
+	push dx
+	mov cx, 5
 
-swhite:
-colorpixel ypos2, xpos2, white, location
-add xpos2, 1
-loop swhite
+	swhite:
+	colorpixel ypos2, xpos2, white, location
+	add xpos2, 1
+	loop swhite
 
-;---yello---
-pop dx
-mov xpos2, dl
-add xpos2, 1
-push dx
-mov cx, 3
-yello:
-colorpixel ypos2, xpos2, red, location
-add xpos2, 1
-loop yello
-
-
-add ypos2,1
-
-pop dx
-
-mov xpos2, dl
-push dx
-add xpos2, 1
-mov cx, 3
-
-twhite:
-colorpixel ypos2, xpos2, white, location
-add xpos2, 1
-loop twhite
-
-pop dx
+	pop dx
+	mov xpos2, dl
+	add xpos2, 1
+	push dx
+	mov cx, 3
+	yello:
+	colorpixel ypos2, xpos2, red, location
+	add xpos2, 1
+	loop yello
 
 
+	add ypos2,1
+
+	pop dx
+
+	mov xpos2, dl
+	push dx
+	add xpos2, 1
+	mov cx, 3
+
+	twhite:
+	colorpixel ypos2, xpos2, white, location
+	add xpos2, 1
+	loop twhite
+
+	pop dx
+
+	add ypos2, 1
+	mov xpos2, dl
+	;add xpos2,1
+	push dx
+	mov cx, 3
+
+	hoja:
+	colorpixel ypos2, xpos2, green, location
+	add xpos2, 2;
+	loop hoja
+	pop dx
+
+	add ypos2, 1
+	mov xpos2, dl
+	add xpos2,1
+	push dx
+	mov cx, 3
+
+	verde:
+	colorpixel ypos2, xpos2, green, location
+	add xpos2, 1
+	loop verde
+	pop dx
 
 
+	mov xpos2, dl
+	mov ypos2, dh
 
-add ypos2, 1
-mov xpos2, dl
-;add xpos2,1
-push dx
-mov cx, 3
-
-hoja:
-colorpixel ypos2, xpos2, green, location
-add xpos2, 2;
-loop hoja
-pop dx
-
-add ypos2, 1
-mov xpos2, dl
-add xpos2,1
-push dx
-mov cx, 3
-
-verde:
-colorpixel ypos2, xpos2, green, location
-add xpos2, 1
-loop verde
-pop dx
-
-
-mov xpos2, dl
-mov ypos2, dh
-
-pop dx
-pop cx
-pop bx
-pop ax
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 
 endm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -914,32 +969,32 @@ endm
 ;Creado por Jaime 16 de octubre de 2009
 
 block macro
-local paintingBlock
-local painting
+	local paintingBlock
+	local painting
 
-push ax
-push cx
-push dx
-
-mov cx, 2
-paintingBlock:
+	push ax
 	push cx
-	mov cx, 4
-	painting:
-		colorPixel dh, dl, Brown, 2
-		inc dl
-	loop painting
-	mov al, dh
-	pop cx
-	pop dx
 	push dx
-	inc al
-	mov dh, al	
-loop paintingBlock
 
-pop dx
-pop cx
-pop ax
+	mov cx, 2
+	paintingBlock:
+		push cx
+		mov cx, 4
+		painting:
+			colorPixel dh, dl, Brown, 2
+			inc dl
+		loop painting
+		mov al, dh
+		pop cx
+		pop dx
+		push dx
+		inc al
+		mov dh, al	
+	loop paintingBlock
+
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -958,45 +1013,45 @@ endm
 ;Creado por Jaime 16 de octubre de 2009
 
 bush macro
-local paintingBushInf
-local paintingBushMid
-local paintingBushSup
-push ax
-push cx
-push dx
+	local paintingBushInf
+	local paintingBushMid
+	local paintingBushSup
+	push ax
+	push cx
+	push dx
 
-mov cx, 7
-paintingBushInf:
-	colorPixel dh, dl, green, 2
-	inc dl
-loop paintingBushInf
+	mov cx, 7
+	paintingBushInf:
+		colorPixel dh, dl, green, 2
+		inc dl
+	loop paintingBushInf
 
-pop dx
-push dx
+	pop dx
+	push dx
 
-sub dh, 1
-add dl, 1
-mov cx, 5
+	sub dh, 1
+	add dl, 1
+	mov cx, 5
 
-paintingBushMid:
-	colorPixel dh, dl, green, 2
-	inc dl
-loop paintingBushMid
+	paintingBushMid:
+		colorPixel dh, dl, green, 2
+		inc dl
+	loop paintingBushMid
 
-pop dx
-push dx
+	pop dx
+	push dx
 
-sub dh, 2
-add dl, 2
-mov cx, 3
-paintingBushSup:
-	colorPixel dh, dl, green, 2
-	inc dl
-loop paintingBushSup
+	sub dh, 2
+	add dl, 2
+	mov cx, 3
+	paintingBushSup:
+		colorPixel dh, dl, green, 2
+		inc dl
+	loop paintingBushSup
 
-pop dx
-pop cx
-pop ax
+	pop dx
+	pop cx
+	pop ax
 endm
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1307,46 +1362,40 @@ endm
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;Programa simple que simula el movimiento de un objeto en una pantalla de video, usa deltax y deltay para determinar cuanto se mueve el objeto(Creado por Jaime el 13 de octubre de 2009)
 main proc
 	mov ax, @data
 	mov ds, ax
 	mov ax, 0b800h
 	mov es, ax
-	
+
 	mov cx, 5000
 
 	mov al, rebotes
 	mov dummy, al
 
-        mov al, rebotes2
-        mov dummy2, al
-      
-        call background2
-	
+	mov al, rebotes2
+	mov dummy2, al
+
+	call background2
+
 	again:
 	setErasePixels borrar, mushroom, backgroundSelect1
-        setErasePixels borrar2, flower, backgroundSelect2
-	
+	setErasePixels borrar2, flower, backgroundSelect2
+
 	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5, backgroundSelect1 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
-        moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4, backgroundSelect2
-        
-        call background; Dibjar background en "render"
-        call eraser; borrar lo que alla que borrar
-        mushroom 2; escribir hongo en "render"
-        flower 2; escribir flower en "render"
-               
-        call doRender; copiar render a memoria de video
-	
-	
+	moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4, backgroundSelect2
+
+	call background; Dibjar background en "render"
+	call eraser; borrar lo que alla que borrar
+	mushroom 2; escribir hongo en "render"
+	flower 2; escribir flower en "render"
+
+	call doRender; copiar render a memoria de video
+
+
 	call sleep
 	jmp again
-	;loop jumpFarther
-	;jmp finishMain
-	
-	;jumpfarther:
-	;jmp again
-	
+
 	finishMain:
 	mov ax, 4c00h
 	int 21h
@@ -1716,572 +1765,573 @@ writeToBack2 endp
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+;Creado por Daphne 23 de Octubre de 2009
 background2 proc
-push ax
-push bx
-push cx
-push dx
+	push ax
+	push bx
+	push cx
+	push dx
 
-	;Se agrego esta parte a la subrutina para que el la parte de atras del background no sea enteramente negra
+		;Se agrego esta parte a la subrutina para que el la parte de atras del background no sea enteramente negra
 
-	;Se termino modificacion
+		;Se termino modificacion
 
-mov bx, 0
-mov cx, 160
-paintingGris:
-mov ah, white
-mov al, 0
-inc bx
-mov bowserCastle[bx], ah
-inc bx
-loop paintingGris
+	mov bx, 0
+	mov cx, 160
+	paintingGris:
+	mov ah, white
+	mov al, 0
+	inc bx
+	mov bowserCastle[bx], ah
+	inc bx
+	loop paintingGris
 
-mov cx, 1280
-paintingNegro:
-mov ah, 04h
-mov al, 0b0h
-mov bowserCastle[bx], al
-inc bx
-mov bowserCastle[bx], ah
-inc bx
-loop paintingNegro
+	mov cx, 1280
+	paintingNegro:
+	mov ah, 04h
+	mov al, 0b0h
+	mov bowserCastle[bx], al
+	inc bx
+	mov bowserCastle[bx], ah
+	inc bx
+	loop paintingNegro
 
-mov cx, 560
-paintingLava:
-mov ah, red
-mov al, 0
-inc bx
-mov bowserCastle[bx], ah
-inc bx
-loop paintingLava
-
-
-
-
-;___________(((((Bloques Gris))))))))_____________
-mov dh, 0 ;fila
-mov dl, 0 ;columna
-block
-
-mov dh, 16 ;fila
-mov dl, 0 ; column
-block
-
-mov dh, 0 ;fila
-mov dl, 76 ; columna ((en 80 no me la dibuja pq el bloque es de 4))))
-block
-
-mov dh, 16 ;fila
-mov dl, 76 ; columna
-block
-
-;____________(((((((((koopa)))))))))_______________
-
-mov dh, 6 
-mov dl, 53 
-Koopa
-mov dh, 6 
-mov dl, 54 
-Koopa
-mov dh, 7 
-mov dl, 52 
-Koopa
-mov dh, 7 
-mov dl, 53
-Koopa
-mov dh, 7 
-mov dl, 55 
-Koopa
-mov dh, 7
-mov dl, 56
-Koopa
-mov dh, 7
-mov dl, 57
-Koopa
-mov dh, 8 
-mov dl, 52
-Koopa
-mov dh, 8 
-mov dl, 53
-Koopa
-mov dh, 8
-mov dl, 54
-Koopa
-mov dh, 8
-mov dl, 55
-Koopa
-mov dh, 8
-mov dl, 56
-Koopa
-mov dh, 8 
-mov dl, 57 
-Koopa
-mov dh, 9 
-mov dl, 52 
-Koopa
-mov dh, 9 
-mov dl, 53 
-Koopa
-mov dh, 9 
-mov dl, 54 
-Koopa
-mov dh, 9 
-mov dl, 55 
-Koopa
-mov dh, 9 
-mov dl, 56 
-koopa
-mov dh, 10 
-mov dl, 52 
-koopa
-mov dh, 10 
-mov dl, 53 
-koopa
-mov dh, 11 
-mov dl, 50 
-koopa
-mov dh, 11 
-mov dl, 51 
-koopa
-mov dh, 11 ;fila
-mov dl, 53 ; columna
-koopa
-mov dh, 12 ;fila
-mov dl, 49 ; columna
-koopa
-mov dh, 12 ;fila
-mov dl, 50 ; columna
-koopa
-mov dh, 12 ;fila
-mov dl, 51 ; columna
-koopa
-mov dh, 12 ;fila
-mov dl, 53 ; columna
-koopa
-mov dh, 13 ;fila
-mov dl, 48 ; columna
-koopa
-mov dh, 13 ;fila
-mov dl, 49 ; columna
-koopa
-mov dh, 13 ;fila
-mov dl, 50 ; columna
-koopa
-mov dh, 14 ;fila
-mov dl, 47 ; columna
-koopa
-mov dh, 14 ;fila
-mov dl, 48 ; columna
-koopa
-mov dh, 14 ;fila
-mov dl, 49 ; columna
-koopa
-mov dh, 14 ;fila
-mov dl, 51 ; columna
-koopa
-mov dh, 14 ;fila
-mov dl, 52 ; columna
-koopa
-mov dh, 15 ;fila
-mov dl, 48 ; columna
-koopa
-mov dh, 15 ;fila
-mov dl, 50 ; columna
-koopa
-mov dh, 15 ;fila
-mov dl, 51 ; columna
-koopa
-mov dh, 15 ;fila
-mov dl, 52 ; columna
-koopa
-mov dh, 16 ;fila
-mov dl, 51 ; columna
-koopa
-
-
-;_______((((((((((puntitos blancos)))))))))))_________
-mov dh, 6 
-mov dl, 52 
-blanco
-mov dh, 7
-mov dl, 54 
-blanco
-mov dh, 10 
-mov dl, 51
-blanco
-mov dh, 11  
-mov dl, 52
-blanco
-mov dh, 12 
-mov dl, 52
-blanco
-mov dh, 13 
-mov dl, 51 
-blanco
-mov dh, 14  
-mov dl, 50 
-blanco
-mov dh, 15  
-mov dl, 49 
-blanco
-
-;____________(((((((((((((puntitos crema))))))))))))))____________
-
-mov dh, 10  
-mov dl, 54
-crema
-mov dh, 10
-mov dl, 55
-crema
-mov dh, 13 
-mov dl, 52
-crema
-mov dh, 13 
-mov dl, 53
-crema
-mov dh, 13  
-mov dl, 54
-crema
-mov dh, 14  
-mov dl, 53
-crema
-mov dh, 14   
-mov dl, 54
-crema
-mov dh, 16  
-mov dl, 49
-crema
-mov dh, 16  
-mov dl, 50
-crema
-mov dh, 16 
-mov dl, 52
-crema
-mov dh, 16 
-mov dl, 53
-crema
-mov dh, 16 
-mov dl, 54
-crema
-mov dh, 17 
-mov dl, 48
-crema
-mov dh, 17 
-mov dl, 49
-crema
-mov dh, 17  
-mov dl, 50
-crema
-mov dh, 17  
-mov dl, 51
-crema
+	mov cx, 560
+	paintingLava:
+	mov ah, red
+	mov al, 0
+	inc bx
+	mov bowserCastle[bx], ah
+	inc bx
+	loop paintingLava
 
 
 
-;___MARIO____(parece un lego)
-mov dh,5  
-mov dl,15 
-blanco
-mov dh,5  
-mov dl,16 
-blanco
-mov dh,5  
-mov dl,17 
-blanco
-mov dh,5  
-mov dl,18
-blanco
-mov dh,5  
-mov dl,19 
-blanco
-mov dh,6 
-mov dl,14 
-blanco
-mov dh,6 
-mov dl,15 
-blanco
-mov dh,6 
-mov dl,16 
-blanco
-mov dh,6 
-mov dl,17 
-blanco
-mov dh,6 
-mov dl,18 
-blanco
-mov dh,6 
-mov dl,19 
-blanco
-mov dh,6 
-mov dl,20
-blanco
-mov dh, 10
-mov dl, 15
-blanco
-mov dh, 10
-mov dl, 16
-blanco
-mov dh, 10
-mov dl, 18
-blanco
-mov dh, 10
-mov dl, 19
-blanco
-mov dh, 11
-mov dl, 15
-blanco
-mov dh, 11
-mov dl, 16
-blanco
-mov dh, 11
-mov dl, 17
-blanco
-mov dh, 11
-mov dl, 18
-blanco
-mov dh, 11
-mov dl, 19
-blanco
-mov dh, 12
-mov dl, 15
-blanco
-mov dh, 12
-mov dl, 16
-blanco
-mov dh, 12
-mov dl, 17
-blanco
-mov dh, 12
-mov dl, 18
-blanco
-mov dh, 12
-mov dl, 19
-blanco
-mov dh, 13
-mov dl, 15
-blanco
-mov dh, 13
-mov dl, 16
-blanco
-mov dh, 13
-mov dl, 17
-blanco
-mov dh, 13
-mov dl, 18
-blanco
-mov dh, 13
-mov dl, 19
-blanco
-mov dh, 14
-mov dl, 15
-blanco
-mov dh, 14
-mov dl, 16
-blanco
-mov dh, 14
-mov dl, 18
-blanco
-mov dh, 14
-mov dl, 19
-blanco
+
+	;Codigo que copia un bloque gris
+	mov dh, 0 ;fila
+	mov dl, 0 ;columna
+	block
+
+	mov dh, 16 ;fila
+	mov dl, 0 ; column
+	block
+
+	mov dh, 0 ;fila
+	mov dl, 76 ; columna 
+	block
+
+	mov dh, 16 ;fila
+	mov dl, 76 ; columna
+	block
+
+	;Codigo que dibuja los pixeles verdes de koopa
+
+	mov dh, 6 
+	mov dl, 53 
+	Koopa
+	mov dh, 6 
+	mov dl, 54 
+	Koopa
+	mov dh, 7 
+	mov dl, 52 
+	Koopa
+	mov dh, 7 
+	mov dl, 53
+	Koopa
+	mov dh, 7 
+	mov dl, 55 
+	Koopa
+	mov dh, 7
+	mov dl, 56
+	Koopa
+	mov dh, 7
+	mov dl, 57
+	Koopa
+	mov dh, 8 
+	mov dl, 52
+	Koopa
+	mov dh, 8 
+	mov dl, 53
+	Koopa
+	mov dh, 8
+	mov dl, 54
+	Koopa
+	mov dh, 8
+	mov dl, 55
+	Koopa
+	mov dh, 8
+	mov dl, 56
+	Koopa
+	mov dh, 8 
+	mov dl, 57 
+	Koopa
+	mov dh, 9 
+	mov dl, 52 
+	Koopa
+	mov dh, 9 
+	mov dl, 53 
+	Koopa
+	mov dh, 9 
+	mov dl, 54 
+	Koopa
+	mov dh, 9 
+	mov dl, 55 
+	Koopa
+	mov dh, 9 
+	mov dl, 56 
+	koopa
+	mov dh, 10 
+	mov dl, 52 
+	koopa
+	mov dh, 10 
+	mov dl, 53 
+	koopa
+	mov dh, 11 
+	mov dl, 50 
+	koopa
+	mov dh, 11 
+	mov dl, 51 
+	koopa
+	mov dh, 11 ;fila
+	mov dl, 53 ; columna
+	koopa
+	mov dh, 12 ;fila
+	mov dl, 49 ; columna
+	koopa
+	mov dh, 12 ;fila
+	mov dl, 50 ; columna
+	koopa
+	mov dh, 12 ;fila
+	mov dl, 51 ; columna
+	koopa
+	mov dh, 12 ;fila
+	mov dl, 53 ; columna
+	koopa
+	mov dh, 13 ;fila
+	mov dl, 48 ; columna
+	koopa
+	mov dh, 13 ;fila
+	mov dl, 49 ; columna
+	koopa
+	mov dh, 13 ;fila
+	mov dl, 50 ; columna
+	koopa
+	mov dh, 14 ;fila
+	mov dl, 47 ; columna
+	koopa
+	mov dh, 14 ;fila
+	mov dl, 48 ; columna
+	koopa
+	mov dh, 14 ;fila
+	mov dl, 49 ; columna
+	koopa
+	mov dh, 14 ;fila
+	mov dl, 51 ; columna
+	koopa
+	mov dh, 14 ;fila
+	mov dl, 52 ; columna
+	koopa
+	mov dh, 15 ;fila
+	mov dl, 48 ; columna
+	koopa
+	mov dh, 15 ;fila
+	mov dl, 50 ; columna
+	koopa
+	mov dh, 15 ;fila
+	mov dl, 51 ; columna
+	koopa
+	mov dh, 15 ;fila
+	mov dl, 52 ; columna
+	koopa
+	mov dh, 16 ;fila
+	mov dl, 51 ; columna
+	koopa
 
 
-mov dh, 6
-mov dl, 17
-rojo
-mov dh, 10
-mov dl, 14
-rojo
-mov dh, 10
-mov dl, 17
-rojo
-mov dh, 10
-mov dl, 20
-rojo
-mov dh, 11
-mov dl, 14
-rojo
-mov dh, 11
-mov dl, 20
-rojo
-mov dh, 15
-mov dl, 15
-rojo
-mov dh, 15
-mov dl, 16
-rojo
-mov dh, 15
-mov dl, 18
-rojo
-mov dh, 15
-mov dl, 19
-rojo
+	;Codigo que pinta los pixeles de blanco
+	mov dh, 6 
+	mov dl, 52 
+	blanco
+	mov dh, 7
+	mov dl, 54 
+	blanco
+	mov dh, 10 
+	mov dl, 51
+	blanco
+	mov dh, 11  
+	mov dl, 52
+	blanco
+	mov dh, 12 
+	mov dl, 52
+	blanco
+	mov dh, 13 
+	mov dl, 51 
+	blanco
+	mov dh, 14  
+	mov dl, 50 
+	blanco
+	mov dh, 15  
+	mov dl, 49 
+	blanco
 
-mov dh, 7
-mov dl, 15
-peach
-mov dh, 7
-mov dl, 17
-peach
-mov dh, 7
-mov dl, 19
-peach
-mov dh, 8
-mov dl, 15
-peach
-mov dh, 8
-mov dl, 16
-peach
-mov dh, 8
-mov dl, 17
-peach
-mov dh, 8
-mov dl, 18
-peach
-mov dh, 8
-mov dl, 19
-peach
-mov dh, 9
-mov dl, 17
-peach
-mov dh, 12
-mov dl, 14
-peach
-mov dh, 12
-mov dl, 20
-peach
-mov dh, 16
-mov dl, 4
-peach
-mov dh, 16
-mov dl, 5
-peach
-mov dh, 16
-mov dl, 6
-peach
-mov dh, 16
-mov dl, 7
-peach
-mov dh, 16
-mov dl, 8
-peach
-mov dh, 16
-mov dl, 9
-peach
-mov dh, 16
-mov dl, 10
-peach
-mov dh, 16
-mov dl, 11
-peach
-mov dh, 16
-mov dl, 12
-peach
-mov dh, 16
-mov dl, 13
-peach
-mov dh, 16
-mov dl, 14
-peach
-mov dh, 16
-mov dl, 15
-peach
-mov dh, 16
-mov dl, 16
-peach
-mov dh, 16
-mov dl, 17
-peach
-mov dh, 16
-mov dl, 18
-peach
-mov dh, 16
-mov dl, 19
-peach
-mov dh, 16
-mov dl, 20
-peach
-mov dh, 16
-mov dl, 21
-peach
-mov dh, 16
-mov dl, 22
-peach
-mov dh, 16
-mov dl, 23
-peach
-mov dh, 16
-mov dl, 24
-peach
-mov dh, 16
-mov dl, 25
-peach
+	;Codigo que pinta los pixeles de amarillo
+
+	mov dh, 10  
+	mov dl, 54
+	crema
+	mov dh, 10
+	mov dl, 55
+	crema
+	mov dh, 13 
+	mov dl, 52
+	crema
+	mov dh, 13 
+	mov dl, 53
+	crema
+	mov dh, 13  
+	mov dl, 54
+	crema
+	mov dh, 14  
+	mov dl, 53
+	crema
+	mov dh, 14   
+	mov dl, 54
+	crema
+	mov dh, 16  
+	mov dl, 49
+	crema
+	mov dh, 16  
+	mov dl, 50
+	crema
+	mov dh, 16 
+	mov dl, 52
+	crema
+	mov dh, 16 
+	mov dl, 53
+	crema
+	mov dh, 16 
+	mov dl, 54
+	crema
+	mov dh, 17 
+	mov dl, 48
+	crema
+	mov dh, 17 
+	mov dl, 49
+	crema
+	mov dh, 17  
+	mov dl, 50
+	crema
+	mov dh, 17  
+	mov dl, 51
+	crema
 
 
 
-;flor
-mov dh, 5
-mov dl, 33
-blanco
-mov dh, 5  
-mov dl, 34
-blanco
-mov dh, 5  
-mov dl, 35
-blanco 
-mov dh, 6  
-mov dl, 32
-blanco
-mov dh, 6  
-mov dl, 36
-blanco
-mov dh, 7  
-mov dl, 33
-blanco
-mov dh, 7
-mov dl, 34
-blanco
-mov dh, 7
-mov dl, 35
-blanco
-mov dh, 6  
-mov dl, 33
-crema
-mov dh, 6
-mov dl, 34
-crema
-mov dh, 6
-mov dl, 35
-crema
-mov dh, 8
-mov dl, 32
-koopa
-mov dh, 8
-mov dl, 34
-koopa
-mov dh, 8
-mov dl, 36
-koopa
-mov dh, 9
-mov dl, 33
-koopa
-mov dh, 9
-mov dl, 34
-koopa
-mov dh, 9
-mov dl, 35
-koopa
+	;Codigo que dibuja a Mario
+	mov dh,5  
+	mov dl,15 
+	blanco
+	mov dh,5  
+	mov dl,16 
+	blanco
+	mov dh,5  
+	mov dl,17 
+	blanco
+	mov dh,5  
+	mov dl,18
+	blanco
+	mov dh,5  
+	mov dl,19 
+	blanco
+	mov dh,6 
+	mov dl,14 
+	blanco
+	mov dh,6 
+	mov dl,15 
+	blanco
+	mov dh,6 
+	mov dl,16 
+	blanco
+	mov dh,6 
+	mov dl,17 
+	blanco
+	mov dh,6 
+	mov dl,18 
+	blanco
+	mov dh,6 
+	mov dl,19 
+	blanco
+	mov dh,6 
+	mov dl,20
+	blanco
+	mov dh, 10
+	mov dl, 15
+	blanco
+	mov dh, 10
+	mov dl, 16
+	blanco
+	mov dh, 10
+	mov dl, 18
+	blanco
+	mov dh, 10
+	mov dl, 19
+	blanco
+	mov dh, 11
+	mov dl, 15
+	blanco
+	mov dh, 11
+	mov dl, 16
+	blanco
+	mov dh, 11
+	mov dl, 17
+	blanco
+	mov dh, 11
+	mov dl, 18
+	blanco
+	mov dh, 11
+	mov dl, 19
+	blanco
+	mov dh, 12
+	mov dl, 15
+	blanco
+	mov dh, 12
+	mov dl, 16
+	blanco
+	mov dh, 12
+	mov dl, 17
+	blanco
+	mov dh, 12
+	mov dl, 18
+	blanco
+	mov dh, 12
+	mov dl, 19
+	blanco
+	mov dh, 13
+	mov dl, 15
+	blanco
+	mov dh, 13
+	mov dl, 16
+	blanco
+	mov dh, 13
+	mov dl, 17
+	blanco
+	mov dh, 13
+	mov dl, 18
+	blanco
+	mov dh, 13
+	mov dl, 19
+	blanco
+	mov dh, 14
+	mov dl, 15
+	blanco
+	mov dh, 14
+	mov dl, 16
+	blanco
+	mov dh, 14
+	mov dl, 18
+	blanco
+	mov dh, 14
+	mov dl, 19
+	blanco
 
-mov dh, 10
-mov dl, 32
-bloque
 
-pop dx
-pop cx
-pop bx
-pop ax
-ret
+	mov dh, 6
+	mov dl, 17
+	rojo
+	mov dh, 10
+	mov dl, 14
+	rojo
+	mov dh, 10
+	mov dl, 17
+	rojo
+	mov dh, 10
+	mov dl, 20
+	rojo
+	mov dh, 11
+	mov dl, 14
+	rojo
+	mov dh, 11
+	mov dl, 20
+	rojo
+	mov dh, 15
+	mov dl, 15
+	rojo
+	mov dh, 15
+	mov dl, 16
+	rojo
+	mov dh, 15
+	mov dl, 18
+	rojo
+	mov dh, 15
+	mov dl, 19
+	rojo
+
+	mov dh, 7
+	mov dl, 15
+	peach
+	mov dh, 7
+	mov dl, 17
+	peach
+	mov dh, 7
+	mov dl, 19
+	peach
+	mov dh, 8
+	mov dl, 15
+	peach
+	mov dh, 8
+	mov dl, 16
+	peach
+	mov dh, 8
+	mov dl, 17
+	peach
+	mov dh, 8
+	mov dl, 18
+	peach
+	mov dh, 8
+	mov dl, 19
+	peach
+	mov dh, 9
+	mov dl, 17
+	peach
+	mov dh, 12
+	mov dl, 14
+	peach
+	mov dh, 12
+	mov dl, 20
+	peach
+	mov dh, 16
+	mov dl, 4
+	peach
+	mov dh, 16
+	mov dl, 5
+	peach
+	mov dh, 16
+	mov dl, 6
+	peach
+	mov dh, 16
+	mov dl, 7
+	peach
+	mov dh, 16
+	mov dl, 8
+	peach
+	mov dh, 16
+	mov dl, 9
+	peach
+	mov dh, 16
+	mov dl, 10
+	peach
+	mov dh, 16
+	mov dl, 11
+	peach
+	mov dh, 16
+	mov dl, 12
+	peach
+	mov dh, 16
+	mov dl, 13
+	peach
+	mov dh, 16
+	mov dl, 14
+	peach
+	mov dh, 16
+	mov dl, 15
+	peach
+	mov dh, 16
+	mov dl, 16
+	peach
+	mov dh, 16
+	mov dl, 17
+	peach
+	mov dh, 16
+	mov dl, 18
+	peach
+	mov dh, 16
+	mov dl, 19
+	peach
+	mov dh, 16
+	mov dl, 20
+	peach
+	mov dh, 16
+	mov dl, 21
+	peach
+	mov dh, 16
+	mov dl, 22
+	peach
+	mov dh, 16
+	mov dl, 23
+	peach
+	mov dh, 16
+	mov dl, 24
+	peach
+	mov dh, 16
+	mov dl, 25
+	peach
+
+
+
+	;Codigo que dibuja la flor
+	mov dh, 5
+	mov dl, 33
+	blanco
+	mov dh, 5  
+	mov dl, 34
+	blanco
+	mov dh, 5  
+	mov dl, 35
+	blanco 
+	mov dh, 6  
+	mov dl, 32
+	blanco
+	mov dh, 6  
+	mov dl, 36
+	blanco
+	mov dh, 7  
+	mov dl, 33
+	blanco
+	mov dh, 7
+	mov dl, 34
+	blanco
+	mov dh, 7
+	mov dl, 35
+	blanco
+	mov dh, 6  
+	mov dl, 33
+	crema
+	mov dh, 6
+	mov dl, 34
+	crema
+	mov dh, 6
+	mov dl, 35
+	crema
+	mov dh, 8
+	mov dl, 32
+	koopa
+	mov dh, 8
+	mov dl, 34
+	koopa
+	mov dh, 8
+	mov dl, 36
+	koopa
+	mov dh, 9
+	mov dl, 33
+	koopa
+	mov dh, 9
+	mov dl, 34
+	koopa
+	mov dh, 9
+	mov dl, 35
+	koopa
+
+	;Codigo que dibuja el bloque que esta debajo de la flor 
+	mov dh, 10
+	mov dl, 32
+	bloque
+
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
 background2 endp		
 
 end main
