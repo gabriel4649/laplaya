@@ -4,41 +4,61 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 .data
 	marca db '>>>>'
 	
-        ; variables hongo
-        deltax db -1
+        ;Variables del hongo
+        deltax db -4
 	deltay db 1
-	xpos db 2
+	xpos db 40
 	ypos db 2
-        rebotes db 5
-	dummy db ? ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
-	borrar db 3
-        ;Selecciona cual background va a dibujar el hongo
+        rebotes db 30
+	;Variables del hongo fin 
+	
+	 ; Se utiliza esta variable para no modificar el numero de rebotes (se necesita saber el numero de rebotes para cuando el programa deje de borrar)
+	dummy db ?
+	
+	; Determina el estado de la imagen, o sea si va a flotar, borrar o pintar de nuevo el background.
+	; (0) Pinta
+	; (1) Borra
+	; (3) Flota
+	borrar db 3  
+	
+        ;Selecciona cual background es el que se va a dibujar el hongo
+	;En 0 dibuja el background original y en 1 dibuja el segundo background
 	backgroundSelect1 db 0
 	
  
-        ; variables flor
-        deltax2 db 1
+        ;Variables de la flor
+        deltax2 db 4
         deltay2 db 1
-        xpos2 db 30
+        xpos2 db 15
         ypos2 db 10
-        rebotes2 db 5
+        rebotes2 db 30
         dummy2 db ?
         borrar2 db 3
-        ;Selecciona cual background va a dibujar la flor
+	;Variables de la flor fin
+	
+	;Selecciona cual background es el que se va a dibujar la flor
+	;En 0 dibuja el background original y en 1 dibuja el segundo background
 	backgroundSelect2 db 0
         
-        ; delay
-        delay dw 0009h
+        ;Determina cuan rapido se va a mover la imagen, o sea cuan rapido va a correr el programa
+        delay dw 0001h
         
-        ;mapa de borron
+        ;Variable que determina que pixel se va a dibujar en la pantalla.
+	;(0) Se dibuja pixel del primer background
+	;(1) Se dibuja un pixel negro
+	;(2) Se dibuja pixel del segundo background
 	erasePixel db 4000 dup(0)
-        ;paso intermedio para escritura de video
+	
+	
+        ;La imagen que se va a dibujar en pantalla primero se dibuja en esta variable.
+	;Esto se hace para que no se vea el proceso de borrar y de dibujar la imagen.
+	;De esta manera cuando se dibuja a pantalla se ve mas bonito
         render db 4000 dup(0)
-	;mapa del segundo background
+	
+	
+	;Esta variable contiene el segundo background
 	bowserCastle db 4000 dup(0)
 	
-	;variable intermedia para verificar que no se copie donde se borro
-	onlyErase db 4000 dup(0)
 
         ;colores
 	red db 44h
@@ -49,40 +69,274 @@ Title subrutina que mueve un caracter en la pantalla por un delta X y delta Y
 	yellow db 0eeh
         black db 00h
         gray db 088h
-        magenta db 101b
+	purple db 55h
+	detailBrown db 60h
 
 .code
 
-;_________________________________________________________________________
-;Dibuja los bloques gris (editado por Daphne 23 de Octubre) 
-block macro
-local paintingBlock
-local painting
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-push ax
-push cx
-push dx
 
-mov cx, 10 ;((((habia un 2, y este se agranda verticalmente hacia abajo por filas))))
-paintingBlock:
-push cx
-mov cx, 4 ;(((se agranda horizontalmente hacia la derecha columna))
-painting:
-colorPixel dh, dl, gray, 4
-inc dl
-loop painting
-mov al, dh
-pop cx
-pop dx
-push dx
-inc al
-mov dh, al
-loop paintingBlock
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-pop dx
-pop cx
-pop ax
+;Dibuja la imagen de un goomba a la variable render,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Jaime 11 de noviembre de 2009
+
+goomba macro
+
+	push ax
+	push cx
+	push dx
+
+	mov cx, 5
+
+	paintingRow1:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow1
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+	mov cx, 7
+	paintingRow2:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow2
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+		;Painting third row
+
+	colorPixel dh, dl, brown, 2
+	inc dl
+	colorPixel dh, dl, brown, 2
+	inc dl
+
+	mov cx, 5
+	paintingRow3:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow3
+
+	colorPixel dh, dl, brown, 2
+	inc dl
+	colorPixel dh, dl, brown, 2
+		;End painting third row
+
+	pop dx
+	dec dl
+	inc dh
+	push dx
+
+		;Painting fourth row
+
+	mov cx, 11
+	paintingRow4First:
+		colorPixel dh, dl, brown, 2
+		inc dl 
+	loop paintingRow4First
+
+	pop dx
+	push dx
+	add dl, 2
+
+	mov cx, 7
+	paintingRow4Second:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow4Second
+
+	pop dx
+	push dx
+	add dl, 4
+	colorPixel dh, dl, black, 2
+	add dl, 2
+	colorPixel dh, dl, black, 2
+	
+		;End painting fourth row
+	pop dx
+	dec dl
+	inc dh
+	push dx
+		;Painting fifth row
+
+	mov cx, 13
+	paintingRow5:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow5
+
+		;End painting fifth row
+
+	pop dx
+	inc dh
+	push dx
+		;Painting sixth row
+	mov cx, 13
+	paintingRow5First:
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow5First
+	
+	pop dx
+	push dx
+	add dl, 4
+
+	mov cx, 5
+	paintingRow5Second:
+		colorPixel dh, dl, white, 2
+		inc dl
+	loop paintingRow5Second
+		;End painting sixth row	
+
+	pop dx
+	inc dl
+	inc dh
+	push dx
+	
+		;Painting seventh row
+
+	mov cx, 11
+	paintingRow6First:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow6First
+
+	pop dx
+	push dx
+	add dl, 4
+
+	mov cx, 3
+	paintingRow6Second:
+	
+		colorPixel dh, dl, brown, 2
+		inc dl
+	loop paintingRow6Second
+		;End painting seventh
+	pop dx
+	inc dh
+	push dx
+
+		;Painting Eighth Row
+
+	mov cx, 4
+	paintingRow7First:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow7First
+
+	add dl, 3
+
+	mov cx, 4
+	paintingRow7Second:
+	
+		colorPixel dh, dl, black, 2
+		inc dl
+		
+	loop paintingRow7Second
+
+	
+		;End painting Eighth
+	pop dx
+	pop cx
+	pop ax
+
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Dibuja la imagen de una moneda a la variable render,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Jaime 11 de noviembre de 2009
+coin macro
+
+	local paintingSecond
+	local paintingThird
+
+	push ax
+	push cx
+	push dx
+	
+	colorPixel dh, dl, purple, 2
+	
+	pop dx
+	inc dh
+	dec dl
+	push dx	
+	
+	;Painting second row
+
+	mov cx, 3
+	
+	paintingSecond:
+	
+		colorPixel dh, dl, purple, 2
+		inc dl
+
+	loop paintingSecond
+	
+	;End second
+
+	pop dx
+	inc dh
+	push dx
+
+	;Painting third row	
+	
+	mov cx, 3
+
+	paintingThird:
+		colorPixel dh, dl, purple, 2
+		inc dl
+	loop paintingThird
+
+	
+	;End third
+
+	pop dx
+	inc dh
+	inc dl
+	push dx
+
+	colorPixel dh, dl, purple, 2
+
+	pop dx
+	pop cx
+	pop ax
+	
+
+endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;____________((((((((KOOPA)))))))))))))___________________________________
 ;(((((((((Dibuja a koopa (editado por Daphne 23 de Octubre de 2009))))))))
@@ -116,6 +370,11 @@ pop cx
 pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;_______(((((((((((((((((((Blanco)))))))))))))))_______________________________
 blanco macro
 local paintBlanco
@@ -145,6 +404,11 @@ pop dx
 pop cx
 pop ax
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;________________((((((((((((crema)))))))))))))))))))_____________
 crema macro
@@ -206,6 +470,11 @@ pop cx
 pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;_______Macro Peach_____
 peach macro
 local paintPeach
@@ -235,6 +504,11 @@ pop dx
 pop cx
 pop ax
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;_________Dibuja el bloque________
 bloque macro
@@ -266,7 +540,20 @@ pop cx
 pop ax
 endm
 
-;Esta subrutina mueve un pixel del objecto por una cantidad deltax y deltay
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Este macro mueve la posicion actual de una imagen,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: Se escriben las coordenadas donde se va a dibujar en dx, dh es la fila y dl es la columna.
+
+;Creado por Jaime 11 de noviembre de 2009
+
 moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh, bgType
 	push ax
 	push bx
@@ -288,13 +575,27 @@ moveOb macro deltax, deltay, xpos, ypos, borrar, dummy, rebotes, height, widthh,
 	pop ax
 endm
 
-;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array (Creado por Jaime el 14 de octubre de 2009)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+										
+;Especifica que pixeles de video se tienen que borrar. Lo hace guardando esta informacion en una variable tipo array
+
+;Precondiciones: N/A
+;PostCondiciones: A erasePixel se le añaden las variables que representan las partes borradas y los backgrounds
+
+;Parametros/Registros: borrar que es la variable que contiene el estado de borrar, meneco que contiene la imagen que se va a usar y bgType que contiene
+;el tipo de variable de background que se va a escribir al mapa de borron. 
+
+;Creado por Gabriel el 14 de octubre de 2009
+ 
 setErasePixels macro borrar, muneco, bgType
         local dontDoAnything, noSetPixel, finished, writeBack2
-        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal de la subrutina. 
+        cmp borrar, 3; Si esta en el estado 3, el estado de flotar, simplemente sal del macro. 
 	je dontDoAnything
 
-	push ax; Guardar a ax
+	push ax; Guardar registros
 	push cx
 	    
         mov ah, white; Guardar valores originales de white y red 
@@ -302,45 +603,56 @@ setErasePixels macro borrar, muneco, bgType
 	mov ch, green
 	
      
-	cmp borrar, 1
+	cmp borrar, 1; Verificar si se encuentra en el estado 1, el estado de escribir backgrounds
         jnz noSetPixel
-        cmp bgType, 1
-	je writeBack2
-        mov white, 0; Poner 0 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
+       
+        cmp bgType, 1; Verificar el estado de bgType, si esta en 1 se escribe el segundo background
+	je writeBack2    
+        mov white, 0; Poner 0 el red y white para cuando se escriba el muneco en el mapa de borrar lo que alla es un hongo compuesto de 0s. 
         mov red, 0
 	mov green, 0
-     
 	muneco 1; Escribir el hongo que consiste de 0s al mapa de borrar. 
         
 	jmp finished
-        	
-	noSetPixel:
-	
-	
-	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un hongo compuesto de 1s. 
-        mov red, 1
-	mov green, 1
-	muneco 1; Escribir el hongo que consiste de 1s al mapa de borrar. 
-	jmp finished
-	
-	writeBack2:
+
+        writeBack2:; Escribir 2 al mapa de borrar en forma del muneco
 	mov white, 2
 	mov red, 2
 	mov green, 2
 	muneco 1
+
+        jmp finished
+        	
+	noSetPixel:	
+	mov white,1; Poner 1 el red y white para cuando se escriba el hongo en el mapa de borrar lo que alla es un muneco compuesto de 1s. 
+        mov red, 1
+	mov green, 1
+	muneco 1; Escribir el muneco que consiste de 1s al mapa de borrar. 
         
         finished:
-        mov white, ah; Restaurar white y red
+        mov white, ah; Restaurar white, red y green
         mov red, al
 	mov green, ch
 
-	pop cx
+	pop cx; Restaurar registros
 	pop ax
+
         dontDoAnything:
 
 endm
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;Dibuja la imagen de un hongo a la variable render,
+
+;Precondiciones: Utiliza las variables xpos y ypos para determinar con respecto a que localizacion va a crear la imagen.
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx guarda localmente las variables xpos y ypos para no alterar sus valores cuando se termine de ejecutar el macro.
+
+;Creado por Jaime 11 de noviembre de 2009
 
 ;Esta subrutina dibuja el objeto que va a rebotar en la pantalla utilizando las variables xpos y ypos como referencia(Creado por Jaime el 15 de octubre de 2009)
 
@@ -398,10 +710,11 @@ mushroom macro location
 	pop ax
 
 endm
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-                                                                     
-                                                                     
-                                                                     
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
                                              
 ;Este macro dibuja una flor
 flower macro location
@@ -506,7 +819,21 @@ pop bx
 pop ax
 
 endm
-;Necesita las coordenadas en dx, dh es la fila y dl es la columna(creado por Jaime 15 de octubre de 2009)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Dibuja la imagen de una nube a la variable render,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Jaime 15 de octubre de 2009
+
 cloud macro
 	local paintingMidCloud
 	local paintingMid
@@ -557,7 +884,21 @@ cloud macro
 	pop ax
 endm
 
-;Dibuja un bloque marron (Creado por Jaime 16 de octubre de 2009)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Dibuja la imagen de una nube a la variable render,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Jaime 16 de octubre de 2009
+
 block macro
 local paintingBlock
 local painting
@@ -571,7 +912,7 @@ paintingBlock:
 	push cx
 	mov cx, 4
 	painting:
-		colorPixel dh, dl, brown, 2
+		colorPixel dh, dl, Brown, 2
 		inc dl
 	loop painting
 	mov al, dh
@@ -587,6 +928,20 @@ pop cx
 pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Dibuja la imagen de un arbusto a la variable render,
+
+;Precondiciones: N/A
+;PostCondiciones N/A
+
+;Parametros/Registros: 
+;1-Dx En este registro se guardan las coordenadas en donde se va a guardar la imagen. En dh se guarda la fila y en dl la columna
+
+;Creado por Jaime 16 de octubre de 2009
 
 bush macro
 local paintingBushInf
@@ -630,6 +985,11 @@ pop cx
 pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;Macro que determina la localizacion de un desplazamiento utilizando las filas y columnas y devolviendo el valor en el registro bx(Creado por Jaime el 13 de octubre de 2009)
 coordenadas macro fila, columna
@@ -647,6 +1007,11 @@ coordenadas macro fila, columna
 	pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;Macro que actualiza la posicion del objeto utilizando como parametros el cambio en direccion y la posicion actual(Creado por Jaime el 13 de octubre de 2009)
 moveD macro delta, pos
 	push ax
@@ -658,7 +1023,23 @@ moveD macro delta, pos
 	pop ax
 endm
 
-;Macro que verifica si el objeto debe comenzar a borrar la imagen(Creado por Jaime el 14 de octubre de 2009)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Macro que verifica si el objeto debe comenzar a borrar la imagen o si debe escribir uno de los backgrounds
+
+;Precondiciones: N/A
+;PostCondiciones: Puede que se modifique el estado de borrar si es que hay un cambio de estado y dummy siempre va a cambiar. 
+;Tambien se podria invertir el valorbgType si hay un cambio al estado 1.
+
+;Parametros/Registros: borrar que es la variable que contiene el estado de borrar, dummy que es una variable temporera utilizada para 
+;mantener cuenta de los estados, rebotes que es el numero de rebotes que debe hacer el objeto antes de cambiar de estado
+;y bgType que contiene que contiene el tipo de background que se va a escribir al mapa de borron. 
+
+;Creado por Gabriel el 14 de octubre de 2009
+
 setErase macro borrar, dummy, rebotes, bgType
         ; Borrar
         ; Estado 3 = No hacer nada, flotar
@@ -707,6 +1088,11 @@ setErase macro borrar, dummy, rebotes, bgType
 	noSetErase:
         pop ax
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;Macro que utiliza como parametros la fila, columna y el color en el que se va a dibujar un pixel en video
 colorPixel macro fila, columna, color, memoria
@@ -763,40 +1149,112 @@ colorPixel macro fila, columna, color, memoria
 	pop ax
 endm
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Cuando la imagen se sale de la pantalla, este macro la dibuja en el borde por donde se sali�.
+
+;Precondiciones:
+;Postcondiciones:
+
+;Parametros:
+;1-Delta: Se utiliza este parametro para verificar por donde se sali� la imagen y para mover esta otra vez a la pantalla.
+;2-Pos: Este parametro indica la posicion actual de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla.
+;3-Lengthh: Este parametro es el largo o ancho de la imagen. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
+;4-Border: Este parametro es el largo o ancho de la pantalla. Se utiliza para verificar si la imagen ya se encuentra dentro de la pantalla luego de que se sale por la parte derecha o inferior de la pantalla.
+;5-Ax: Este registro guarda temporeramente el valor de delta.
+
+;Creado por Jaime A. Torres el 12 de noviembre de 2009
+goToEdge macro delta, pos, lengthh, border
+
+	local loop1
+	local rightOrBelow
+	local loop2
+	local exit
+	push ax
+
+	mov al, delta
+	cmp delta, 0
+	jg rightOrBelow
+	
+	mov delta, 1
+	loop1:
+		moveD delta, pos
+		cmp pos, 0
+		je exit
+	jmp loop1
+	
+	rightOrBelow:
+	mov delta, -1
+	loop2:
+		moveD delta, pos
+		mov ah, pos
+		add ah, lengthh
+		cmp ah, border
+		je exit
+	jmp loop2
+	
+	exit:
+	mov delta, al
+	
+	pop ax
+
+endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;Macro que determina si el objeto se salio de la pantalla y le cambia la direccion para arreglarlo. (Creado por Jaime 24 de octubre de 2009)
 checkPixel macro delta, pos, border, lengthh, borrar, dummy, rebotes, bgType
 
-  local outBorder
-  local boundaryChecked
-  
-  push ax
-  mov al, border
-  mov ah, lengthh
-  
-  sub al, ah ;Esta resta se hace con el proposito de verificar hasta que punto relativo puede moverse el objeto
-  
-  cmp pos, 0
-  jl outBorder;if pos is negative
-  cmp pos, al
-  jg outBorder; if pos is bigger 
-  jmp boundaryChecked
-  
-  
-  outBorder:
-    changeDelta delta, pos, borrar, dummy, rebotes, bgType
-    
-  boundaryChecked:
-  pop ax
+	local outBorder
+	local boundaryChecked
+	  
+	push ax
+	mov al, border
+	mov ah, lengthh
+	
+	sub al, ah ;Esta resta se hace con el proposito de verificar hasta que punto relativo puede moverse el objeto
+	  
+	cmp pos, 0
+	jl outBorder;if pos is negative
+	
+	
+	cmp pos, al
+	jg outBorder; if pos is bigger 
+	jmp boundaryChecked
+	  
+	  
+	outBorder:
+	
+	goToedge delta, pos, lengthh, border
+	changeDelta delta, pos, borrar, dummy, rebotes, bgType
+	    
+	  boundaryChecked:
+	  pop ax
 
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;Macro que cambia direccion a la que se mueve el objeto. (Creado por Jaime 24 de octubre de 2009)
 changeDelta macro delta, pos, borrar, dummy, rebotes, bgType
 	neg delta
-	moveD delta, pos
 	setErase borrar, dummy, rebotes, bgType
 endm
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;Programa simple que simula el movimiento de un objeto en una pantalla de video, usa deltax y deltay para determinar cuanto se mueve el objeto(Creado por Jaime el 13 de octubre de 2009)
@@ -806,7 +1264,7 @@ main proc
 	mov ax, 0b800h
 	mov es, ax
 	
-	mov cx, 1000
+	mov cx, 5000
 
 	mov al, rebotes
 	mov dummy, al
@@ -819,6 +1277,7 @@ main proc
 	again:
 	setErasePixels borrar, mushroom, backgroundSelect1
         setErasePixels borrar2, flower, backgroundSelect2
+	
 	moveOb deltax, deltay, xpos, ypos, borrar, dummy, rebotes, 3, 5, backgroundSelect1 ;Actualiza las variables posx y posy para que el objeto se dibuje en una parte diferente
         moveOb deltax2, deltay2, xpos2, ypos2, borrar2, dummy2, rebotes2, 5, 4, backgroundSelect2
         
@@ -843,6 +1302,20 @@ main proc
 	int 21h
 main endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Subrutina que pasa la variable render a la memoria de video. 
+
+;Precondiciones: N/A
+;PostCondiciones: Modifica el contenido de la memoria de video. 
+
+;Parametros/Registros: render, la variable que contiene lo que se va a copiar a la memoria de video. 
+
+;Creado por Gabriel el 15 de octubre de 2009
+
 doRender proc
          push ax; Guardar los registros
          push bx
@@ -861,11 +1334,16 @@ doRender proc
          inc bx
          loop renderLoop
          
-	 pop cx
+	 pop cx; Restaurar los registros
          pop bx
          pop ax
 	 ret
 doRender endp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;Esta subrutina manipula la velocidad a la que va a correr el programa utilizando la variable delay(Creado por Jaime el 13 de octubre de 2009)
 sleep proc
@@ -884,6 +1362,11 @@ sleep proc
 	ret
 sleep endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;Verifica si el objeto se salio de la pantalla y si esto ocurre, cambia la direccion a la que se va a mover
 
 ;Borra la parte de la pantalla que se debe borrar luego de que el objeto rebota varias veces en la pantalla (Creado por Jaime el 14 de octubre de 2009)
@@ -897,11 +1380,10 @@ eraser proc
 	checkErase:
 		cmp erasePixel[bx], 1 ; Verifica si se debe borrar el pixel apuntado por bx
 		jnz CheckifDrawBack2 ;If el pixel no es cero, vuelve a iterar
-                mov ah, magenta
-                mov al, magenta
-		mov render[bx], ah
-		inc bx
+		mov ax, 0h
 		mov render[bx], al
+		inc bx
+		mov render[bx], ah
 		dec bx
 		jmp doNothing
 		
@@ -926,6 +1408,11 @@ eraser proc
 	ret
 eraser endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 background proc
 	push ax
@@ -946,13 +1433,15 @@ background proc
 	
 	mov cx, 400
 	paintingGround:
-		mov ah, brown
-		mov al, 0
+		mov ah, detailBrown
+		mov al, 0b0h
 		mov render[bx], al
 		inc bx
 		mov render[bx], ah
 		inc bx
 	loop paintingGround
+
+
 	
 	mov dl, 71
 	mov dh, 14
@@ -1005,6 +1494,14 @@ background proc
 	mov dh, 12
 	mov dl, 12
 	block
+
+	mov dh, 7
+	mov dl, 14
+	coin
+
+	mov dh, 7
+	mov dl, 13
+	coin
 		
 	mov cx, 3
 	mov dh, 12
@@ -1017,6 +1514,14 @@ background proc
 	mov dh, 6
 	mov dl, 36
 	block
+
+	mov dh, 1
+	mov dl, 37
+	coin
+	
+	mov dh, 1
+	mov dl, 38
+	coin
 	
 	
 	mov dh, 19
@@ -1026,7 +1531,11 @@ background proc
 	mov dh, 19
 	mov dl, 60
 	bush
-		
+		;Anadi goomba
+	mov dh, 12
+	mov dl, 51
+	goomba
+		;Se acabo
 	
 	pop dx
 	pop dx
@@ -1035,6 +1544,11 @@ background proc
 	pop ax
 	ret
 background endp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 writeToBorron proc
 
@@ -1053,6 +1567,11 @@ writeToBorron proc
 ret
 writeToBorron endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 writeToRender proc
 
@@ -1063,11 +1582,21 @@ writeToRender proc
 ret
 writeToRender endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 writeToVideo proc
 	escribirAVideo: mov es:[bx], ax; Pasar el byte entero a la memoria de video
 ret
 writeToVideo endp
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 writeToBack2 proc
 	mov bowserCastle[bx], al
@@ -1076,28 +1605,38 @@ writeToBack2 proc
 	ret
 writeToBack2 endp
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 background2 proc
 push ax
 push bx
 push cx
 push dx
 
+	;Se agrego esta parte a la subrutina para que el la parte de atras del background no sea enteramente negra
+
+	;Se termino modificacion
+
 mov bx, 0
 mov cx, 160
 paintingGris:
-mov ah, gray
+mov ah, white
 mov al, 0
-mov bowserCastle[bx], ah
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingGris
 
 mov cx, 1280
 paintingNegro:
-mov ah, black
-mov al, 0
-mov bowserCastle[bx], ah
+mov ah, 04h
+mov al, 0b0h
+mov bowserCastle[bx], al
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingNegro
 
@@ -1105,8 +1644,8 @@ mov cx, 560
 paintingLava:
 mov ah, red
 mov al, 0
-mov bowserCastle[bx], ah
 inc bx
+mov bowserCastle[bx], ah
 inc bx
 loop paintingLava
 
