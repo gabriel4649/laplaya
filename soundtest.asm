@@ -153,8 +153,9 @@ main proc
   mainLoop:
 
   ;leer del teclado
-  mov ah, 8
+  mov ah, 6
   mov dl, 0ffh
+  int 21h
   jz readChar
   
   ;no char in buffer, set to inaudible frequency
