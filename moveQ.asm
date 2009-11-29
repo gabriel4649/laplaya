@@ -579,11 +579,9 @@ moveOb macro deltax:req, deltay:req, xpos:req, ypos:req, borrar:req, dummy:req, 
 	moveD deltay, ypos
 	
 	;Aqui se debe verificar si se salio de la parte inferior o superior de la pantalla
-	;checkCoordinatesnew xpos, ypos, 6, 4; 6 y 3 son el ancho y el largo de la imagen
 	checkPixel deltay, ypos, 25, height, borrar, dummy, rebotes, bgType
 	
 	moveD deltax, xpos
-	;Aqui se deber verificar si se salio de la parte derecha o izquierda de la pantalla
 	checkPixel deltax, xpos, 79, widthh, borrar, dummy, rebotes, bgType
 	pop cx
 	pop bx
