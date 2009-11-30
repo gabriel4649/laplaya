@@ -18,7 +18,7 @@ noteGsharp dw 415
 noteA dw 440
 noteAsharp dw 466
 noteB  dw 494
-silence dw 1
+silence dw 2
 
 ;variable para guardar una nota
 note dw 1
@@ -72,9 +72,9 @@ testMacro macro
 
         ; turn off speaker, check note count, set up next note
 
-        xor     al, 3                  
-        out     61h, al                 ; turn off speaker
-        mov     cx, 0af0h
+        ;xor     al, 3                  
+       ; out     61h, al                 ; turn off speaker
+       ; mov     cx, 0af0h
     
 	pop ax
 	pop bx
@@ -121,14 +121,17 @@ keyboardToNote macro charAscii, note
 local caseQ, caseW, caseE, caseR, exit
 push bx
 
-mov bx, silence
-mov note, bx
-
 cmp charAscii, 'q'
 je caseQ
 
+cmp charAscii, '2'
+je case2
+
 cmp charAscii, 'w'
 je caseW
+
+cmp charAscii, '3'
+je case3
 
 cmp charAscii, 'e'
 je caseE
@@ -136,24 +139,45 @@ je caseE
 cmp charAscii, 'r'
 je caseR
 
+cmp charAscii, '5'
+je case5
+
 cmp charAscii, 't'
 je caseT
+
+cmp charAscii, '6'
+je case6
 
 cmp charAscii, 'y'
 je caseY
 
+cmp charAscii, '7'
+je case7
+
 cmp charAscii, 'u'
 je caseU
 
-jmp exit
+;mov bx, silence
+;mov note, bx
+;jmp exit
 
 caseQ:
 mov bx, noteC
 mov note, bx
 jmp exit
 
+case2:
+mov bx, noteCsharp
+mov note, bx
+jmp exit
+
 caseW:
 mov bx, noteD
+mov note, bx
+jmp exit
+
+case3:
+mov bx, noteDsharp
 mov note, bx
 jmp exit
 
@@ -167,13 +191,28 @@ mov bx, noteF
 mov note, bx
 jmp exit
 
+case5:
+mov bx, noteFsharp
+mov note, bx
+jmp exit
+
 caseT:
 mov bx, noteG
 mov note, bx
 jmp exit
 
+case6:
+mov bx, noteGsharp
+mov note, bx
+jmp exit
+
 caseY:
 mov bx, noteA
+mov note, bx
+jmp exit
+
+case7:
+mov bx, noteAsharp
 mov note, bx
 jmp exit
 
@@ -216,17 +255,13 @@ main proc
   mov ax, @data
   mov ds, ax
 
-  mov cx, 1000
-
-
   mainLoop:
 
-  tryAgain:
-      
+  tryAgain:  
       mov ah, 6
       mov dl, 0FFh
       int 21h
-   jz tryAgain
+      jz tryAgain
 
   mov character, al
   keyboardToNote character, note
@@ -244,7 +279,7 @@ main proc
   ;call stopSpeaker
   
   ;inaudible:
-  call clearBuffer
+  ;call clearBuffer
   jmp mainLoop
 
  
