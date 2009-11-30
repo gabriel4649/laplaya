@@ -3,24 +3,24 @@ Title Prueba de sonido
 .stack 100h
 .data
 marca db '>>>>'
-delay dw 005fh
+delay dw 00ffh
 
 ;Notes
-noteC db 65
-noteCsharp db 69
-noteD db 73
-noteDsharp db 78
-noteE db 82
-noteF db 87
-noteFsharp db 92
-noteG db 98
-noteGsharp db 104
-noteA db 110
-noteAsharp db 116
-noteB  db 123
+noteC dw 262
+noteCsharp dw 277
+noteD dw 294
+noteDsharp dw 311
+noteE dw 330
+noteF dw 349
+noteFsharp dw 370
+noteG dw 392
+noteGsharp dw 415
+noteA dw 440
+noteAsharp dw 466
+noteB  dw 494
 
 ;variable para guardar una nota
-note db ?
+note dw ?
 
 ;captured character
 character db ?
@@ -43,6 +43,51 @@ sleep proc
 	pop cx
 	ret
 sleep endp
+
+testMacro macro
+
+		push dx
+		push cx
+		push si
+		push bx
+		push ax
+
+        mov     al, 0b6h                ; set 8253 command register
+        out     43h, al                 ; for channel 2, mode 3
+
+        mov     ax, 34dch               ; low part of clock freq.
+        mov     dx, 12h                 ; hight part of clock freq.
+		mov cx, note
+        div        cx      ; get note from data segment
+        out     42h, al                 ; 8253 command register (low byte)
+        mov     al, ah
+        out     42h, al                 ; 8253 command regsieter (high byte)
+
+; turn on low bits in 8255 output port
+
+        in      al, 61h                 ; read current value of 8255 port
+        or      al, 3                   ; clear low bits
+        out     61h, al                 ; send new value to port
+
+; loop while note is sounding
+
+        mov     cx, 0fffh      
+
+rpta:
+        loop    rpta                    ; 1/10 sec delay
+
+; turn off speaker, check note count, set up next note
+
+        xor     al, 3                  
+        out     61h, al                 ; turn off speaker
+        mov     cx, 0af0h
+    
+		pop ax
+		pop bx
+		pop si
+		pop cx
+		pop dx
+endm
 
 clearBuffer proc
   push ax
@@ -97,23 +142,23 @@ cmp charAscii, 'r'
 je caseR
 
 caseQ:
-mov bl, noteC
-mov note, bl
+mov bx, noteC
+mov note, bx
 jmp exit
 
 caseW:
-mov bl, noteD
-mov note, bl
+mov bx, noteD
+mov note, bx
 jmp exit
 
 caseE:
-mov bl, noteE
-mov note, bl
+mov bx, noteE
+mov note, bx
 jmp exit
 
 caseR:
-mov bl, noteF
-mov note, bl
+mov bx, noteF
+mov note, bx
 jmp exit
 
 exit:
@@ -123,6 +168,7 @@ endm
 
 setNote macro note
   push ax
+  push bx
 
   ;tell timer 2 that we want to modify the count down  
   ;send value 0B6h to port 43h
@@ -132,13 +178,15 @@ setNote macro note
   ;send the value of the new count down low byte first high byte last
   ;important that this is done as quickly as possible
 
-  mov al, note
+  mov ax, note
   ;send low byte to port 42h
   out 42h, al
   ;send high byte to port 42h
-  mov al, 0
+  mov bx, ax
+  mov al, bh
   out 42h, al
 
+  pop bx
   pop ax
 endm
 
@@ -152,28 +200,36 @@ main proc
 
   mainLoop:
 
-  ;leer del teclado
-  mov ah, 6
-  mov dl, 0ffh
-  int 21h
-  jnz readChar
-  
-  jmp inaudible
 
-  readChar:
+  ;;leer del teclado
+  ;mov ah, 6
+  ;mov dl, 0ffh
+  ;int 21h
+
+  tryAgain:
+      mov ah, 6
+      mov dl, 0FFh
+      int 21h
+   jz tryAgain
+
   mov character, al
   keyboardToNote character, note
 
+  ;print char
+  mov ah, 02h
+  mov dl, al
+  int 21h
+
  
   setNote note
+  testMacro
+  ;call startSpeaker
+  ;call sleep
+  ;call stopSpeaker
+  ;call clearBuffer
+  ;inaudible:
 
-  call startSpeaker
-  inaudible:
-  call sleep
-  call stopSpeaker
-  call clearBuffer
-
-  loop mainLoop
+  jmp mainLoop
 
  
   ;stop program
