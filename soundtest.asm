@@ -18,9 +18,10 @@ noteGsharp dw 415
 noteA dw 440
 noteAsharp dw 466
 noteB  dw 494
+silence dw 1
 
 ;variable para guardar una nota
-note dw ?
+note dw 1
 
 ;captured character
 character db ?
@@ -46,47 +47,38 @@ sleep endp
 
 testMacro macro
 
-		push dx
-		push cx
-		push si
-		push bx
-		push ax
+	push dx
+	push bx
+	push ax
 
         mov     al, 0b6h                ; set 8253 command register
         out     43h, al                 ; for channel 2, mode 3
 
         mov     ax, 34dch               ; low part of clock freq.
         mov     dx, 12h                 ; hight part of clock freq.
-		mov cx, note
-        div        cx      ; get note from data segment
+        div     note      ; get note from data segment
         out     42h, al                 ; 8253 command register (low byte)
         mov     al, ah
         out     42h, al                 ; 8253 command regsieter (high byte)
 
-; turn on low bits in 8255 output port
+        ; turn on low bits in 8255 output port
 
         in      al, 61h                 ; read current value of 8255 port
         or      al, 3                   ; clear low bits
         out     61h, al                 ; send new value to port
+   
 
-; loop while note is sounding
+        call sleep
 
-        mov     cx, 0fffh      
-
-rpta:
-        loop    rpta                    ; 1/10 sec delay
-
-; turn off speaker, check note count, set up next note
+        ; turn off speaker, check note count, set up next note
 
         xor     al, 3                  
         out     61h, al                 ; turn off speaker
         mov     cx, 0af0h
     
-		pop ax
-		pop bx
-		pop si
-		pop cx
-		pop dx
+	pop ax
+	pop bx
+	pop dx
 endm
 
 clearBuffer proc
@@ -129,6 +121,9 @@ keyboardToNote macro charAscii, note
 local caseQ, caseW, caseE, caseR, exit
 push bx
 
+mov bx, silence
+mov note, bx
+
 cmp charAscii, 'q'
 je caseQ
 
@@ -140,6 +135,17 @@ je caseE
 
 cmp charAscii, 'r'
 je caseR
+
+cmp charAscii, 't'
+je caseT
+
+cmp charAscii, 'y'
+je caseY
+
+cmp charAscii, 'u'
+je caseU
+
+jmp exit
 
 caseQ:
 mov bx, noteC
@@ -158,6 +164,21 @@ jmp exit
 
 caseR:
 mov bx, noteF
+mov note, bx
+jmp exit
+
+caseT:
+mov bx, noteG
+mov note, bx
+jmp exit
+
+caseY:
+mov bx, noteA
+mov note, bx
+jmp exit
+
+caseU:
+mov bx, noteB
 mov note, bx
 jmp exit
 
@@ -200,13 +221,8 @@ main proc
 
   mainLoop:
 
-
-  ;;leer del teclado
-  ;mov ah, 6
-  ;mov dl, 0ffh
-  ;int 21h
-
   tryAgain:
+      
       mov ah, 6
       mov dl, 0FFh
       int 21h
@@ -221,14 +237,14 @@ main proc
   int 21h
 
  
-  setNote note
+  ;setNote note
   testMacro
   ;call startSpeaker
   ;call sleep
   ;call stopSpeaker
-  ;call clearBuffer
+  
   ;inaudible:
-
+  call clearBuffer
   jmp mainLoop
 
  
