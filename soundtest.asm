@@ -3,7 +3,7 @@ Title Prueba de sonido
 .stack 100h
 .data
 marca db '>>>>'
-delay dw 0ffh
+delay dw 005fh
 
 ;Notes
 noteC db 65
@@ -156,20 +156,19 @@ main proc
   mov ah, 6
   mov dl, 0ffh
   int 21h
-  jz readChar
+  jnz readChar
   
-  ;no char in buffer, set to inaudible frequency
-  mov al, 0
   jmp inaudible
 
   readChar:
   mov character, al
   keyboardToNote character, note
 
-  inaudible:
+ 
   setNote note
 
   call startSpeaker
+  inaudible:
   call sleep
   call stopSpeaker
   call clearBuffer
