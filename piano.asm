@@ -720,19 +720,16 @@ main proc
 	setNote note
 	call startSpeaker
 	noInput:
+	
 	call iluminateWhitePiano
+	call iluminateBlackPiano
+	
 	call sleep
 	
 	call clearIlum
-	call stopSpeaker
-	;inaudible:
-	
-
-	
+	call stopSpeaker	
 	jmp mainLoop
 
-        
-        ;mWait 5
         mGoToTextMode        
 
         mov ah,4ch
@@ -892,6 +889,115 @@ iluminateWhitePiano proc
 	ret
 iluminateWhitePiano endp
 
+iluminateBlackPiano proc
+	push ax
+	push cx
+	push bx
+	push dx
+	push si
+
+	mov si, 0
+
+	mov ax, xpiano
+	push ax
+
+	;Esta parte del codigo se lleva a cabo para calcular la posicion en la que se va a empezar a dibujar las teclas negras.
+	;Estas van a ser dibujadas a un desplazamiento de la posicion inicial de 3/4 partes el ancho de la tecla blanca 
+	mov ax, anchoBlanca
+	inc ax
+	mov cx, 3
+	mov dx, 0
+	mul cx
+	mov dx, 0
+	mov cx, 4
+	div cx
+	add xpiano, ax
+	
+	
+	mov cx, 2
+	ilumAllBlackPianoKeys:
+		push cx
+		
+		mov cx, 2
+		ilumBlackPianoKeys1:
+			cmp ilumBlack[si], 1
+			jne noIlumBlack1
+			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
+			jmp finishDraw1
+			
+			noIlumBlack1:
+			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
+			;xpiano += anchoBlanca
+			finishDraw1:
+			mov bx, anchoNegra
+			add xpiano, bx
+			add xpiano, bx
+			inc si
+		loopX ilumBlackPianoKeys1
+		
+		;Estas lineas dejan un espacio de una tecla blanca.
+		mov cx, 2
+		addingMultipleIlum1:
+			mov bx, anchoNegra
+			add xpiano, bx
+		loop addingMultipleIlum1
+		
+		mov cx, 3
+		ilumBlackPianoKeys2:
+			cmp ilumBlack[si], 1
+			jne noIlumBlack2
+			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
+			jmp finishDraw2
+			
+			noIlumBlack2:
+			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
+			;xpiano += anchoBlanca
+			finishDraw2:
+			mov bx, anchoNegra
+			add xpiano, bx
+			add xpiano, bx
+			inc si
+		loopX ilumBlackPianoKeys2
+		
+		mov cx, 2
+			addingMultipleIlum2:
+			mov bx, anchoNegra
+			add xpiano, bx
+		loop addingMultipleIlum2
+	
+		pop cx
+	loopX ilumAllBlackPianoKeys
+	
+	
+	mov cx, 2
+	ilumBlackPianoKeys3:
+			cmp ilumBlack[si], 1
+			jne noIlumBlack3
+			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
+			jmp finishDraw3
+			
+			noIlumBlack3:
+			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
+			;xpiano += anchoBlanca
+			finishDraw3:
+			mov bx, anchoNegra
+			add xpiano, bx
+			add xpiano, bx
+			inc si
+	loopX ilumBlackPianoKeys3	
+	
+	pop ax
+	mov xpiano, ax
+	
+	pop si
+	pop dx
+	pop bx
+	pop cx
+	pop ax
+
+ret
+iluminateBlackPiano endp
+
 clearIlum proc
 	push cx
 	push bx
@@ -899,10 +1005,17 @@ clearIlum proc
 	mov bx, 0
 	
 	mov cx, 17
-	clearing:
+	clearing1:
 	mov ilumWhite[bx], 0
 	inc bx
-	loop clearing	
+	loop clearing1	
+	
+	mov cx, 12
+	mov bx, 0
+	clearing2:
+	mov ilumBlack[bx], 0
+	inc bx
+	loop clearing2
 	
 	pop bx
 	pop cx
