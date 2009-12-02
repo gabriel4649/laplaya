@@ -28,7 +28,11 @@ title MicroPiano
 	ilumWhite db 17 dup(0)
 	ilumBlack db 12 dup(0)
 	
-	delay dw 03ffh
+	recording db 0
+	playing db 0
+	disp dw 0
+	
+	delay dw 01cfh
 
 	;Notes
 	hNoteC dw 523
@@ -70,6 +74,8 @@ title MicroPiano
 
 	;captured character
 	character db ?
+	
+	music db 4000 dup(0)
 .code
 
 drawKey macro x:Req, y:Req, color:Req, ancho:Req, largo:Req
@@ -700,21 +706,19 @@ main proc
         mov ds,ax
         mSetVideoMode 13H,00D
         mClearScreen
-	call drawPiano
-	
+	call drawPiano	
 
-	mainLoop:
-	
+	mainLoop:	
 
 	mov ah, 6
 	mov dl, 0FFh
 	int 21h
-	jz noInput
 
 
 	continue:
 	call clearBuffer
 	mov character, al
+	call recorder
 	keyboardToNote character, note
 
 	setNote note
@@ -1021,6 +1025,67 @@ clearIlum proc
 	pop cx
 	ret
 clearIlum endp
+
+recorder proc
+	push ax
+	push bx
+	push cx
+
+	cmp character, 1bh
+	je stopNow
+	
+	cmp recording, 1
+	je recordNow
+	
+	cmp playing, 1
+	je playNow
+
+	;Aqui se verifica si el caracter que se presiono es el de grabar
+	cmp character, 'a'
+	jne step2
+	mov recording, 1
+	mov cx, 4000
+	mov bx, 0
+	eraseMusic:
+		mov music[bx], 0
+		inc bx
+	loop eraseMusic
+	jmp finishRecorder
+
+	;Aqui se verifica si el caracter que se presiono es el de tocar
+	step2:
+	cmp character, ' '
+	jne finishRecorder
+	mov playing, 1
+	jmp finishRecorder
+
+	stopNow:
+	mov recording, 0
+	mov playing, 0
+	mov disp, 0
+	jmp finishRecorder
+
+	recordNow:
+	mov bx, disp
+	mov al, character
+	mov music[bx], al
+	inc disp
+	jmp finishRecorder
+
+	playNow:
+	mov bx, disp
+	mov al, music[bx]
+	mov character, al
+	inc disp
+	jmp finishRecorder
+
+	finishRecorder:
+
+	pop cx
+	pop bx
+	pop ax
+	ret
+recorder endp
 
 end main
 
