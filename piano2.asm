@@ -10,6 +10,15 @@ title MicroPiano
 	crema db 6
 	amarillo db 14
 	azul db 1
+
+        filehandle dw 0
+        bytesread dw 0
+        filename db "prueba.bmp0"
+        buffer db 3200 dup (0)
+        imagex dw 0
+        imagey dw 0
+        
+
 	
 	ycoord dw 10
 	xcoord dw 35
@@ -28,13 +37,9 @@ title MicroPiano
 	ilumWhite db 17 dup(0)
 	ilumBlack db 12 dup(0)
 	
-	recording db 0
-	playing db 0
-	disp dw 0
-	
-	delay dw 01cfh
+	delay dw 03ffh
 
-	;       Octave 0    1    2    3    4    5    6    7
+;       Octave 0    1    2    3    4    5    6    7
 ; 	Note
 ; 	 C     16   33   65  131  262  523 1046 2093
 ; 	 C#    17   35   69  139  277  554 1109 2217
@@ -90,8 +95,6 @@ title MicroPiano
 
 	;captured character
 	character db ?
-	
-	music db 4000 dup(0)
 .code
 
 drawKey macro x:Req, y:Req, color:Req, ancho:Req, largo:Req
@@ -377,7 +380,7 @@ turnOnIlum macro ilum:Req, displacement:req
 	pop bx
 endm
 
-keyboardToNote macro charAscii, note
+macro charAscii, note
 	local caseZ
 	local caseS
 	local caseX
@@ -720,36 +723,69 @@ main proc
 ;muestra ejemplos de las llamadas a los macros
         mov ax,@data
         mov ds,ax
+
         mSetVideoMode 13H,00D
         mClearScreen
-	call drawPiano	
+	call drawPiano
 
-	mainLoop:	
+        ; open file
+        lea dx, filename
+        mov ah, 3Dh
+        mov al, 0
+        int 21h
+        mov filehandle, ax
+
+        ; read file
+	mov ah, 3fh
+        mov bx, filehandle
+        lea dx, buffer
+        ;number of bytes
+        mov cx, 3200
+        int 21h
+
+        ;write image
+        mov bx, 0
+        mov cx, 320
+        write:
+         push cx
+         mov cx, 100
+         innerLoop:
+          mPutPixelMode13H buffer[bx], imagex, imagey
+          inc imagex
+          loop innerLoop
+         inc imagey
+         pop cx
+         loop write
+         
+        
+        
+
+	mainLoop:
+	mov ah, 3fh
 
 	mov ah, 6
 	mov dl, 0FFh
 	int 21h
-
+	jz noInput
 
 	continue:
 	call clearBuffer
 	mov character, al
-	call recorder
 	keyboardToNote character, note
 
 	setNote note
 	call startSpeaker
 	noInput:
-	
 	call iluminateWhitePiano
-	call iluminateBlackPiano
-	
 	call sleep
 	
 	call clearIlum
-	call stopSpeaker	
+	call stopSpeaker
+	
 	jmp mainLoop
 
+        
+        ;mWait 5
         mGoToTextMode        
 
         mov ah,4ch
@@ -909,115 +945,6 @@ iluminateWhitePiano proc
 	ret
 iluminateWhitePiano endp
 
-iluminateBlackPiano proc
-	push ax
-	push cx
-	push bx
-	push dx
-	push si
-
-	mov si, 0
-
-	mov ax, xpiano
-	push ax
-
-	;Esta parte del codigo se lleva a cabo para calcular la posicion en la que se va a empezar a dibujar las teclas negras.
-	;Estas van a ser dibujadas a un desplazamiento de la posicion inicial de 3/4 partes el ancho de la tecla blanca 
-	mov ax, anchoBlanca
-	inc ax
-	mov cx, 3
-	mov dx, 0
-	mul cx
-	mov dx, 0
-	mov cx, 4
-	div cx
-	add xpiano, ax
-	
-	
-	mov cx, 2
-	ilumAllBlackPianoKeys:
-		push cx
-		
-		mov cx, 2
-		ilumBlackPianoKeys1:
-			cmp ilumBlack[si], 1
-			jne noIlumBlack1
-			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
-			jmp finishDraw1
-			
-			noIlumBlack1:
-			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
-			;xpiano += anchoBlanca
-			finishDraw1:
-			mov bx, anchoNegra
-			add xpiano, bx
-			add xpiano, bx
-			inc si
-		loopX ilumBlackPianoKeys1
-		
-		;Estas lineas dejan un espacio de una tecla blanca.
-		mov cx, 2
-		addingMultipleIlum1:
-			mov bx, anchoNegra
-			add xpiano, bx
-		loop addingMultipleIlum1
-		
-		mov cx, 3
-		ilumBlackPianoKeys2:
-			cmp ilumBlack[si], 1
-			jne noIlumBlack2
-			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
-			jmp finishDraw2
-			
-			noIlumBlack2:
-			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
-			;xpiano += anchoBlanca
-			finishDraw2:
-			mov bx, anchoNegra
-			add xpiano, bx
-			add xpiano, bx
-			inc si
-		loopX ilumBlackPianoKeys2
-		
-		mov cx, 2
-			addingMultipleIlum2:
-			mov bx, anchoNegra
-			add xpiano, bx
-		loop addingMultipleIlum2
-	
-		pop cx
-	loopX ilumAllBlackPianoKeys
-	
-	
-	mov cx, 2
-	ilumBlackPianoKeys3:
-			cmp ilumBlack[si], 1
-			jne noIlumBlack3
-			drawKey xpiano, ypiano, amarillo, anchoNegra, largoNegra
-			jmp finishDraw3
-			
-			noIlumBlack3:
-			drawKey xpiano, ypiano, crema, anchoNegra, largoNegra
-			;xpiano += anchoBlanca
-			finishDraw3:
-			mov bx, anchoNegra
-			add xpiano, bx
-			add xpiano, bx
-			inc si
-	loopX ilumBlackPianoKeys3	
-	
-	pop ax
-	mov xpiano, ax
-	
-	pop si
-	pop dx
-	pop bx
-	pop cx
-	pop ax
-
-ret
-iluminateBlackPiano endp
-
 clearIlum proc
 	push cx
 	push bx
@@ -1025,87 +952,15 @@ clearIlum proc
 	mov bx, 0
 	
 	mov cx, 17
-	clearing1:
+	clearing:
 	mov ilumWhite[bx], 0
 	inc bx
-	loop clearing1	
-	
-	mov cx, 12
-	mov bx, 0
-	clearing2:
-	mov ilumBlack[bx], 0
-	inc bx
-	loop clearing2
+	loop clearing	
 	
 	pop bx
 	pop cx
 	ret
 clearIlum endp
-
-recorder proc
-	push ax
-	push bx
-	push cx
-
-	cmp character, 1bh
-	je stopNow
-	
-	cmp recording, 1
-	je recordNow
-	
-	cmp playing, 1
-	je playNow
-
-	;Aqui se verifica si el caracter que se presiono es el de grabar
-	cmp character, 'a'
-	jne step2
-	mov recording, 1
-	mov cx, 4000
-	mov bx, 0
-	eraseMusic:
-		mov music[bx], 0
-		inc bx
-	loop eraseMusic
-	jmp finishRecorder
-
-	;Aqui se verifica si el caracter que se presiono es el de tocar
-	step2:
-	cmp character, ' '
-	jne finishRecorder
-	mov playing, 1
-	jmp finishRecorder
-
-	stopNow:
-	mov recording, 0
-	mov playing, 0
-	mov disp, 0
-	jmp finishRecorder
-
-	recordNow:
-	mov bx, disp
-	mov al, character
-	mov music[bx], al
-	inc disp
-	jmp finishRecorder
-
-	playNow:
-	mov bx, disp
-	mov al, music[bx]
-	mov character, al
-	inc disp
-	jmp finishRecorder
-
-	finishRecorder:
-
-	pop cx
-	pop bx
-	pop ax
-	ret
-recorder endp
-
-saveToFile proc
-
-saveToFile endp
 
 end main
 
